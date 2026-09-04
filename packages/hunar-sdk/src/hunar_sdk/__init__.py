@@ -41,6 +41,7 @@ from .errors import (
     HunarValidationError,
     WebhookVerificationError,
 )
+from .fake import FakeHunarClient
 from .models import (
     Agent,
     AgentCreate,
@@ -91,6 +92,7 @@ __all__ = [
     "CallStatus",
     "CallbackConfig",
     "EngagementStatus",
+    "FakeHunarClient",
     "Guardrails",
     "HunarAuthError",
     "HunarClient",
