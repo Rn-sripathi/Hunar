@@ -25,8 +25,9 @@ import secrets
 from datetime import UTC, datetime, timedelta
 
 import structlog
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import aliased
 
 from app.core.config import Settings
 from app.core.models import CallAttempt
@@ -456,11 +457,32 @@ async def build_results(session: AsyncSession, job: Job) -> ResultsResponse:
     columns = [FieldSpec.model_validate(field) for field in job.field_spec]
     terminal = {status.value for status in TERMINAL_STATUSES}
 
-    rows_result = await session.execute(
-        select(Candidate, CallAttempt)
-        .outerjoin(
+    # One row per candidate, not per attempt. A candidate whose first call
+    # went unanswered and was retried has two attempts, and joining
+    # naively would list them twice, double-counting them in the totals
+    # and showing a stale answer beside a fresh one. The window function
+    # picks each candidate's most recent attempt; the full history stays
+    # available through the calls endpoint.
+    ranked = (
+        select(
             CallAttempt,
-            (CallAttempt.candidate_id == Candidate.id) & (CallAttempt.job_id == job.id),
+            func.row_number()
+            .over(
+                partition_by=CallAttempt.candidate_id,
+                order_by=(CallAttempt.created_at.desc(), CallAttempt.id.desc()),
+            )
+            .label("attempt_rank"),
+        )
+        .where(CallAttempt.job_id == job.id)
+        .subquery()
+    )
+    latest = aliased(CallAttempt, ranked)
+
+    rows_result = await session.execute(
+        select(Candidate, latest)
+        .outerjoin(
+            latest,
+            (ranked.c.candidate_id == Candidate.id) & (ranked.c.attempt_rank == 1),
         )
         .where(Candidate.job_id == job.id)
         .order_by(Candidate.created_at)

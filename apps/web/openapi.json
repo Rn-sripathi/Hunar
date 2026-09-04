@@ -1,0 +1,2371 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Hunar Screening Console API",
+    "description": "Backend for two applications: AI voice screening of job applicants, and sourcing plus consent-gated voice outreach to prospects.",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/healthz": {
+      "get": {
+        "tags": [
+          "system"
+        ],
+        "summary": "Healthz",
+        "description": "Liveness. Answers if the process is running, nothing more.",
+        "operationId": "healthz_healthz_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/readyz": {
+      "get": {
+        "tags": [
+          "system"
+        ],
+        "summary": "Readyz",
+        "description": "Readiness. Actually touches the database and reports the voice mode.",
+        "operationId": "readyz_readyz_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadinessResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/meta": {
+      "get": {
+        "tags": [
+          "system"
+        ],
+        "summary": "Meta",
+        "description": "Runtime facts the frontend needs, including whether data is simulated.",
+        "operationId": "meta_meta_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetaResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hiring/jobs/preview": {
+      "post": {
+        "tags": [
+          "hiring"
+        ],
+        "summary": "Preview Agent",
+        "description": "Render the agent script and extraction schema for a draft role.",
+        "operationId": "preview_agent_api_v1_hiring_jobs_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentPreview"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hiring/jobs": {
+      "get": {
+        "tags": [
+          "hiring"
+        ],
+        "summary": "List Jobs",
+        "operationId": "list_jobs_api_v1_hiring_jobs_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/JobSummary"
+                  },
+                  "type": "array",
+                  "title": "Response List Jobs Api V1 Hiring Jobs Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "hiring"
+        ],
+        "summary": "Create Job",
+        "operationId": "create_job_api_v1_hiring_jobs_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JobCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hiring/jobs/{job_id}": {
+      "get": {
+        "tags": [
+          "hiring"
+        ],
+        "summary": "Get Job",
+        "operationId": "get_job_api_v1_hiring_jobs__job_id__get",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "hiring"
+        ],
+        "summary": "Update Job",
+        "operationId": "update_job_api_v1_hiring_jobs__job_id__patch",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JobUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "hiring"
+        ],
+        "summary": "Archive Job",
+        "description": "Archive rather than delete. Screening results describe real calls.",
+        "operationId": "archive_job_api_v1_hiring_jobs__job_id__delete",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hiring/jobs/{job_id}/candidates": {
+      "get": {
+        "tags": [
+          "hiring"
+        ],
+        "summary": "List Candidates",
+        "operationId": "list_candidates_api_v1_hiring_jobs__job_id__candidates_get",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CandidateOut"
+                  },
+                  "title": "Response List Candidates Api V1 Hiring Jobs  Job Id  Candidates Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "hiring"
+        ],
+        "summary": "Add Candidate",
+        "operationId": "add_candidate_api_v1_hiring_jobs__job_id__candidates_post",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CandidateCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CandidateOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hiring/jobs/{job_id}/candidates/import": {
+      "post": {
+        "tags": [
+          "hiring"
+        ],
+        "summary": "Import Candidates",
+        "description": "Import candidates from a CSV export.",
+        "operationId": "import_candidates_api_v1_hiring_jobs__job_id__candidates_import_post",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_import_candidates_api_v1_hiring_jobs__job_id__candidates_import_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CandidateImportReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hiring/jobs/{job_id}/candidates/{candidate_id}/decision": {
+      "patch": {
+        "tags": [
+          "hiring"
+        ],
+        "summary": "Set Decision",
+        "description": "Record a recruiter's shortlist or reject decision.\n\nThe score ranks; a person decides. This endpoint is what keeps the\nautomated ranking advisory rather than determinative.",
+        "operationId": "set_decision_api_v1_hiring_jobs__job_id__candidates__candidate_id__decision_patch",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Job Id"
+            }
+          },
+          {
+            "name": "candidate_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Candidate Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CandidateOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hiring/jobs/{job_id}/candidates/{candidate_id}": {
+      "delete": {
+        "tags": [
+          "hiring"
+        ],
+        "summary": "Delete Candidate",
+        "operationId": "delete_candidate_api_v1_hiring_jobs__job_id__candidates__candidate_id__delete",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Job Id"
+            }
+          },
+          {
+            "name": "candidate_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Candidate Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hiring/jobs/{job_id}/calls/launch": {
+      "post": {
+        "tags": [
+          "hiring"
+        ],
+        "summary": "Launch",
+        "description": "Place screening calls.\n\nCreates the job's voice agent on first use. Candidates who already\nhave a completed or in-flight call are skipped rather than dialled\nagain, and anything the telephony layer refuses comes back with its\nreason attached rather than failing the whole batch.",
+        "operationId": "launch_api_v1_hiring_jobs__job_id__calls_launch_post",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LaunchRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LaunchReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hiring/jobs/{job_id}/calls": {
+      "get": {
+        "tags": [
+          "hiring"
+        ],
+        "summary": "List Calls",
+        "description": "List call attempts, refreshing any that are still in flight.",
+        "operationId": "list_calls_api_v1_hiring_jobs__job_id__calls_get",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CallAttemptOut"
+                  },
+                  "title": "Response List Calls Api V1 Hiring Jobs  Job Id  Calls Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hiring/jobs/{job_id}/calls/refresh": {
+      "post": {
+        "tags": [
+          "hiring"
+        ],
+        "summary": "Refresh Calls",
+        "description": "Force a refresh, ignoring the usual staleness interval.\n\nExists for the operator who is watching a call and wants an answer\nnow rather than on the next poll.",
+        "operationId": "refresh_calls_api_v1_hiring_jobs__job_id__calls_refresh_post",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CallAttemptOut"
+                  },
+                  "title": "Response Refresh Calls Api V1 Hiring Jobs  Job Id  Calls Refresh Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hiring/jobs/{job_id}/results": {
+      "get": {
+        "tags": [
+          "hiring"
+        ],
+        "summary": "Results",
+        "description": "Return the results table's columns and rows together.\n\nColumns come from the job's stored field specification, so a single\nendpoint and a single frontend table render every role no matter what\nit asks. ``in_progress`` tells the client whether to keep polling.",
+        "operationId": "results_api_v1_hiring_jobs__job_id__results_get",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/webhooks/hunar/{callback_token}/{event_slug}": {
+      "post": {
+        "tags": [
+          "webhooks"
+        ],
+        "summary": "Receive",
+        "description": "Authenticate one webhook delivery and schedule a state refresh.",
+        "operationId": "receive_webhooks_hunar__callback_token___event_slug__post",
+        "parameters": [
+          {
+            "name": "callback_token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Callback Token"
+            }
+          },
+          {
+            "name": "event_slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Event Slug"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Receive Webhooks Hunar  Callback Token   Event Slug  Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AgentPreview": {
+        "properties": {
+          "introduction": {
+            "type": "string",
+            "title": "Introduction"
+          },
+          "objective": {
+            "type": "string",
+            "title": "Objective"
+          },
+          "agent_prompt": {
+            "type": "string",
+            "title": "Agent Prompt"
+          },
+          "result_prompt": {
+            "type": "string",
+            "title": "Result Prompt"
+          },
+          "result_schema": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Result Schema"
+          },
+          "variables": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Variables"
+          }
+        },
+        "type": "object",
+        "required": [
+          "introduction",
+          "objective",
+          "agent_prompt",
+          "result_prompt",
+          "result_schema",
+          "variables"
+        ],
+        "title": "AgentPreview",
+        "description": "Exactly what the voice agent will be told, shown before any call.\n\nThis is the screen that makes the product legible: a recruiter can\nread the script and the extraction schema their job description\nproduced, and correct it, rather than discovering a bad prompt from a\nconfused candidate on the phone."
+      },
+      "AnswerType": {
+        "type": "string",
+        "enum": [
+          "BOOLEAN",
+          "NUMBER",
+          "STRING",
+          "ENUM"
+        ],
+        "title": "AnswerType",
+        "description": "How an answer is coerced, rendered and scored.\n\nHunar returns every value as a string, so this is our declaration of\nwhat the string is meant to represent. It drives the normaliser, the\ncolumn renderer and the scoring rules from one place."
+      },
+      "Body_import_candidates_api_v1_hiring_jobs__job_id__candidates_import_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_import_candidates_api_v1_hiring_jobs__job_id__candidates_import_post"
+      },
+      "CallAttemptOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "candidate_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Candidate Id"
+          },
+          "hunar_call_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hunar Call Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "lifecycle_status": {
+            "type": "string",
+            "title": "Lifecycle Status"
+          },
+          "engagement_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Engagement Status"
+          },
+          "answered_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answered By"
+          },
+          "recording_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recording Url"
+          },
+          "duration_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Seconds"
+          },
+          "raw_result": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw Result"
+          },
+          "normalized_result": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Normalized Result"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "score_breakdown": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score Breakdown"
+          },
+          "disqualified": {
+            "type": "boolean",
+            "title": "Disqualified",
+            "default": false
+          },
+          "disqualified_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Disqualified Reason"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "error_detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Detail"
+          },
+          "retry_count": {
+            "type": "integer",
+            "title": "Retry Count",
+            "default": 0
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "lifecycle_status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "CallAttemptOut"
+      },
+      "CandidateCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "mobile_number": {
+            "type": "string",
+            "title": "Mobile Number"
+          },
+          "extra": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Extra"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "mobile_number"
+        ],
+        "title": "CandidateCreate"
+      },
+      "CandidateDecision": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "SHORTLISTED",
+          "REJECTED"
+        ],
+        "title": "CandidateDecision"
+      },
+      "CandidateImportReport": {
+        "properties": {
+          "imported": {
+            "type": "integer",
+            "title": "Imported"
+          },
+          "skipped_duplicates": {
+            "type": "integer",
+            "title": "Skipped Duplicates"
+          },
+          "rejected": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Rejected"
+          },
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/CandidateOut"
+            },
+            "type": "array",
+            "title": "Candidates"
+          }
+        },
+        "type": "object",
+        "required": [
+          "imported",
+          "skipped_duplicates"
+        ],
+        "title": "CandidateImportReport",
+        "description": "Outcome of a spreadsheet import.\n\nRejected rows are returned with their reason rather than silently\ndropped, because a recruiter who uploaded 200 rows and got 180\ncandidates needs to know which twenty were lost and why."
+      },
+      "CandidateOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "mobile_number": {
+            "type": "string",
+            "title": "Mobile Number"
+          },
+          "mobile_masked": {
+            "type": "string",
+            "title": "Mobile Masked",
+            "default": ""
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "decision": {
+            "$ref": "#/components/schemas/CandidateDecision"
+          },
+          "decision_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decision Note"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "mobile_number",
+          "source",
+          "decision",
+          "created_at"
+        ],
+        "title": "CandidateOut"
+      },
+      "DecisionUpdate": {
+        "properties": {
+          "decision": {
+            "$ref": "#/components/schemas/CandidateDecision"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "decision"
+        ],
+        "title": "DecisionUpdate"
+      },
+      "DependencyState": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "ok": {
+            "type": "boolean",
+            "title": "Ok"
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "ok"
+        ],
+        "title": "DependencyState"
+      },
+      "FieldSpec": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "answer_type": {
+            "$ref": "#/components/schemas/AnswerType"
+          },
+          "enum_options": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enum Options"
+          },
+          "weight": {
+            "type": "number",
+            "title": "Weight",
+            "default": 0.0
+          },
+          "is_knockout": {
+            "type": "boolean",
+            "title": "Is Knockout",
+            "default": false
+          },
+          "system": {
+            "type": "boolean",
+            "title": "System",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "answer_type"
+        ],
+        "title": "FieldSpec",
+        "description": "One column of the results table, derived from a question.\n\nReturned alongside the rows so the frontend can build a table for a\nschema it has never seen. ``system`` marks the fields every job gets\nregardless of what the recruiter asked."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "ok",
+            "title": "Status"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "environment": {
+            "type": "string",
+            "title": "Environment"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "version",
+          "environment"
+        ],
+        "title": "HealthResponse"
+      },
+      "JobCreate": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 2,
+            "title": "Title"
+          },
+          "company_name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Company Name"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location"
+          },
+          "description_raw": {
+            "type": "string",
+            "maxLength": 20000,
+            "title": "Description Raw",
+            "default": ""
+          },
+          "language": {
+            "type": "string",
+            "title": "Language",
+            "default": "ENGLISH"
+          },
+          "voice_persona": {
+            "type": "string",
+            "title": "Voice Persona",
+            "default": "NEHA"
+          },
+          "persona_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Persona Name"
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone",
+            "default": "Asia/Kolkata"
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/QuestionInput"
+            },
+            "type": "array",
+            "maxItems": 15,
+            "minItems": 1,
+            "title": "Questions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "company_name",
+          "questions"
+        ],
+        "title": "JobCreate"
+      },
+      "JobDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "company_name": {
+            "type": "string",
+            "title": "Company Name"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location"
+          },
+          "language": {
+            "type": "string",
+            "title": "Language"
+          },
+          "voice_persona": {
+            "type": "string",
+            "title": "Voice Persona"
+          },
+          "status": {
+            "$ref": "#/components/schemas/JobStatus"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "candidate_count": {
+            "type": "integer",
+            "title": "Candidate Count",
+            "default": 0
+          },
+          "call_count": {
+            "type": "integer",
+            "title": "Call Count",
+            "default": 0
+          },
+          "completed_count": {
+            "type": "integer",
+            "title": "Completed Count",
+            "default": 0
+          },
+          "shortlisted_count": {
+            "type": "integer",
+            "title": "Shortlisted Count",
+            "default": 0
+          },
+          "description_raw": {
+            "type": "string",
+            "title": "Description Raw"
+          },
+          "persona_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Persona Name"
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone"
+          },
+          "hunar_agent_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hunar Agent Id"
+          },
+          "agent_synced_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agent Synced At"
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/QuestionOut"
+            },
+            "type": "array",
+            "title": "Questions"
+          },
+          "field_spec": {
+            "items": {
+              "$ref": "#/components/schemas/FieldSpec"
+            },
+            "type": "array",
+            "title": "Field Spec"
+          },
+          "preview": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AgentPreview"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "company_name",
+          "language",
+          "voice_persona",
+          "status",
+          "created_at",
+          "description_raw",
+          "timezone"
+        ],
+        "title": "JobDetail"
+      },
+      "JobStatus": {
+        "type": "string",
+        "enum": [
+          "DRAFT",
+          "READY",
+          "CALLING",
+          "DONE",
+          "ARCHIVED"
+        ],
+        "title": "JobStatus",
+        "description": "Where a role is in its screening lifecycle."
+      },
+      "JobSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "company_name": {
+            "type": "string",
+            "title": "Company Name"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location"
+          },
+          "language": {
+            "type": "string",
+            "title": "Language"
+          },
+          "voice_persona": {
+            "type": "string",
+            "title": "Voice Persona"
+          },
+          "status": {
+            "$ref": "#/components/schemas/JobStatus"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "candidate_count": {
+            "type": "integer",
+            "title": "Candidate Count",
+            "default": 0
+          },
+          "call_count": {
+            "type": "integer",
+            "title": "Call Count",
+            "default": 0
+          },
+          "completed_count": {
+            "type": "integer",
+            "title": "Completed Count",
+            "default": 0
+          },
+          "shortlisted_count": {
+            "type": "integer",
+            "title": "Shortlisted Count",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "company_name",
+          "language",
+          "voice_persona",
+          "status",
+          "created_at"
+        ],
+        "title": "JobSummary"
+      },
+      "JobUpdate": {
+        "properties": {
+          "title": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "company_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company Name"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location"
+          },
+          "description_raw": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description Raw"
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Language"
+          },
+          "voice_persona": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Voice Persona"
+          },
+          "persona_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Persona Name"
+          },
+          "questions": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/QuestionInput"
+                },
+                "type": "array",
+                "maxItems": 15,
+                "minItems": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Questions"
+          }
+        },
+        "type": "object",
+        "title": "JobUpdate"
+      },
+      "LaunchReport": {
+        "properties": {
+          "launched": {
+            "type": "integer",
+            "title": "Launched"
+          },
+          "skipped": {
+            "type": "integer",
+            "title": "Skipped"
+          },
+          "blocked": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Blocked"
+          },
+          "calls": {
+            "items": {
+              "$ref": "#/components/schemas/CallAttemptOut"
+            },
+            "type": "array",
+            "title": "Calls"
+          }
+        },
+        "type": "object",
+        "required": [
+          "launched",
+          "skipped"
+        ],
+        "title": "LaunchReport"
+      },
+      "LaunchRequest": {
+        "properties": {
+          "candidate_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Candidate Ids"
+          },
+          "max_retry_count": {
+            "type": "integer",
+            "maximum": 10.0,
+            "minimum": 0.0,
+            "title": "Max Retry Count",
+            "default": 0
+          },
+          "retry_interval_hours": {
+            "type": "integer",
+            "enum": [
+              0,
+              3,
+              6,
+              9,
+              12,
+              24
+            ],
+            "title": "Retry Interval Hours",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "title": "LaunchRequest",
+        "description": "Ask to place calls for a set of candidates."
+      },
+      "MetaResponse": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "environment": {
+            "type": "string",
+            "title": "Environment"
+          },
+          "voice": {
+            "$ref": "#/components/schemas/VoiceModeState"
+          },
+          "people_provider": {
+            "type": "string",
+            "title": "People Provider"
+          },
+          "calling_window": {
+            "type": "string",
+            "title": "Calling Window"
+          },
+          "allowlist_size": {
+            "type": "integer",
+            "title": "Allowlist Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version",
+          "environment",
+          "voice",
+          "people_provider",
+          "calling_window",
+          "allowlist_size"
+        ],
+        "title": "MetaResponse"
+      },
+      "PreviewRequest": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Title",
+            "default": "the role"
+          },
+          "company_name": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Company Name",
+            "default": "the company"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location"
+          },
+          "description_raw": {
+            "type": "string",
+            "maxLength": 20000,
+            "title": "Description Raw",
+            "default": ""
+          },
+          "language": {
+            "type": "string",
+            "title": "Language",
+            "default": "ENGLISH"
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/QuestionInput"
+            },
+            "type": "array",
+            "maxItems": 15,
+            "minItems": 1,
+            "title": "Questions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "questions"
+        ],
+        "title": "PreviewRequest",
+        "description": "Ask what the agent would be told, without saving anything.\n\nPowers the live preview in the create-job form. Making the generated\nscript visible before any call is placed is what lets a recruiter\ncatch a bad prompt themselves, rather than hearing about it from a\nconfused candidate."
+      },
+      "QuestionInput": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 3,
+            "title": "Text"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Label"
+          },
+          "answer_type": {
+            "$ref": "#/components/schemas/AnswerType",
+            "default": "STRING"
+          },
+          "enum_options": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enum Options"
+          },
+          "extraction_hint": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extraction Hint"
+          },
+          "weight": {
+            "type": "number",
+            "maximum": 10.0,
+            "minimum": 0.0,
+            "title": "Weight",
+            "default": 1.0
+          },
+          "is_knockout": {
+            "type": "boolean",
+            "title": "Is Knockout",
+            "default": false
+          },
+          "scoring_rule": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scoring Rule"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text",
+          "label"
+        ],
+        "title": "QuestionInput",
+        "description": "One question as the recruiter defines it."
+      },
+      "QuestionOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "order_index": {
+            "type": "integer",
+            "title": "Order Index"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "field_key": {
+            "type": "string",
+            "title": "Field Key"
+          },
+          "answer_type": {
+            "$ref": "#/components/schemas/AnswerType"
+          },
+          "enum_options": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enum Options"
+          },
+          "extraction_hint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extraction Hint"
+          },
+          "weight": {
+            "type": "number",
+            "title": "Weight"
+          },
+          "is_knockout": {
+            "type": "boolean",
+            "title": "Is Knockout"
+          },
+          "scoring_rule": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scoring Rule"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "order_index",
+          "text",
+          "label",
+          "field_key",
+          "answer_type",
+          "weight",
+          "is_knockout"
+        ],
+        "title": "QuestionOut"
+      },
+      "ReadinessResponse": {
+        "properties": {
+          "ready": {
+            "type": "boolean",
+            "title": "Ready"
+          },
+          "dependencies": {
+            "items": {
+              "$ref": "#/components/schemas/DependencyState"
+            },
+            "type": "array",
+            "title": "Dependencies"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ready",
+          "dependencies"
+        ],
+        "title": "ReadinessResponse"
+      },
+      "ResultRow": {
+        "properties": {
+          "candidate_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Candidate Id"
+          },
+          "candidate_name": {
+            "type": "string",
+            "title": "Candidate Name"
+          },
+          "mobile_masked": {
+            "type": "string",
+            "title": "Mobile Masked"
+          },
+          "decision": {
+            "$ref": "#/components/schemas/CandidateDecision"
+          },
+          "call_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Call Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "recording_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recording Url"
+          },
+          "duration_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Seconds"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "score_breakdown": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score Breakdown"
+          },
+          "disqualified": {
+            "type": "boolean",
+            "title": "Disqualified",
+            "default": false
+          },
+          "disqualified_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Disqualified Reason"
+          },
+          "values": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Values"
+          },
+          "raw_values": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Raw Values"
+          }
+        },
+        "type": "object",
+        "required": [
+          "candidate_id",
+          "candidate_name",
+          "mobile_masked",
+          "decision",
+          "status"
+        ],
+        "title": "ResultRow",
+        "description": "One candidate's screening outcome."
+      },
+      "ResultsResponse": {
+        "properties": {
+          "columns": {
+            "items": {
+              "$ref": "#/components/schemas/FieldSpec"
+            },
+            "type": "array",
+            "title": "Columns"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/ResultRow"
+            },
+            "type": "array",
+            "title": "Rows"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "completed": {
+            "type": "integer",
+            "title": "Completed"
+          },
+          "in_progress": {
+            "type": "boolean",
+            "title": "In Progress",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "columns",
+          "rows",
+          "total",
+          "completed"
+        ],
+        "title": "ResultsResponse",
+        "description": "Columns and rows together, so the table can build itself."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "VoiceModeState": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "live",
+              "mock"
+            ],
+            "title": "Mode"
+          },
+          "configured_mode": {
+            "type": "string",
+            "title": "Configured Mode"
+          },
+          "degraded": {
+            "type": "boolean",
+            "title": "Degraded"
+          },
+          "degrade_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Degrade Reason"
+          },
+          "banner": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Banner"
+          }
+        },
+        "type": "object",
+        "required": [
+          "mode",
+          "configured_mode",
+          "degraded"
+        ],
+        "title": "VoiceModeState",
+        "description": "What the UI needs to describe the current data source truthfully."
+      }
+    }
+  }
+}

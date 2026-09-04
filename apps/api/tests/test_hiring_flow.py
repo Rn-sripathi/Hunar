@@ -328,6 +328,47 @@ class TestScreeningEndToEnd:
         assert response.status_code == 200
         assert response.json()["launched"] == 0
 
+    async def test_an_unanswered_candidate_can_be_called_again(
+        self, client: httpx.AsyncClient
+    ) -> None:
+        """A retry after no answer is legitimate, unlike a second call
+        after a completed interview."""
+        job = await create_job(client)
+        for index in range(8):
+            await add_candidate(client, job["id"], f"C{index}", f"+91987654324{index}")
+
+        await client.post(f"{API}/jobs/{job['id']}/calls/launch", json={})
+        first = await settle(client, job["id"])
+        unanswered = [row for row in first["rows"] if row["status"] != "COMPLETED"]
+
+        second = await client.post(f"{API}/jobs/{job['id']}/calls/launch", json={})
+        assert second.json()["launched"] == len(unanswered)
+
+    async def test_shows_one_row_per_candidate_not_per_attempt(
+        self, client: httpx.AsyncClient
+    ) -> None:
+        """A candidate called twice must not appear twice.
+
+        Duplicated rows would double-count the totals and show a stale
+        answer beside a fresh one, which is worse than showing neither.
+        """
+        job = await create_job(client)
+        for index in range(8):
+            await add_candidate(client, job["id"], f"C{index}", f"+91987654325{index}")
+
+        await client.post(f"{API}/jobs/{job['id']}/calls/launch", json={})
+        await settle(client, job["id"])
+        # Retries anyone who was not reached, creating second attempts.
+        await client.post(f"{API}/jobs/{job['id']}/calls/launch", json={})
+        results = await settle(client, job["id"])
+
+        attempts = (await client.get(f"{API}/jobs/{job['id']}/calls")).json()
+        names = [row["candidate_name"] for row in results["rows"]]
+
+        assert len(attempts) > 8, "the retry did not create extra attempts"
+        assert results["total"] == 8
+        assert len(names) == len(set(names))
+
 
 class TestQuestionEditingSafety:
     async def test_allows_editing_before_any_call(self, client: httpx.AsyncClient) -> None:
