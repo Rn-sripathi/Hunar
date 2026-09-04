@@ -46,7 +46,9 @@ from .enums import (
     AgentStatus,
     CallStatus,
     EngagementStatus,
+    Language,
     LifecycleStatus,
+    VoicePersona,
 )
 from .errors import HunarNotFoundError, HunarValidationError
 from .models import (
@@ -234,6 +236,49 @@ class FakeHunarClient:
         updated = existing.model_copy(update={**updates, "updated_at": datetime.now(UTC)})
         self._agents[existing.id] = updated
         return updated
+
+    def adopt_agent(
+        self,
+        agent_id: UUID | str,
+        *,
+        name: str,
+        result_schema: dict[str, str],
+        language: Language = Language.ENGLISH,
+        voice_persona: VoicePersona = VoicePersona.NEHA,
+    ) -> Agent:
+        """Register an agent that was created against the live API.
+
+        Needed for the degrade path. When a live key expires mid-session
+        the application switches to this client, but the agents it created
+        upstream do not exist in this client's memory, so a call would be
+        rejected for referencing an unknown agent.
+
+        The application stores each job's ``result_schema`` in its own
+        database, so it can hand it back here and demo mode continues to
+        extract exactly the fields that job declared. That keeps the fake
+        strict about genuinely unknown agents rather than inventing one
+        silently, which would hide a real bug in the job wiring.
+
+        Idempotent: adopting an agent that is already known is a no-op.
+        """
+        key = _as_uuid(agent_id)
+        if key in self._agents:
+            return self._agents[key]
+
+        agent = Agent(
+            id=key,
+            name=name,
+            voice_persona=voice_persona,
+            language=language,
+            result_schema=dict(result_schema),
+            status=AgentStatus.ACTIVE,
+            agent_code="ADOPTED",
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
+        )
+        self._agents[key] = agent
+        logger.info("fake_hunar.agent_adopted", agent_id=str(key), name=name)
+        return agent
 
     # ── calls ────────────────────────────────────────────────
     async def create_call(self, payload: CallCreate) -> Call:

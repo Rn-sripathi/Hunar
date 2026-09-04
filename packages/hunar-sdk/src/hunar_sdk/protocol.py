@@ -33,8 +33,16 @@ __all__ = ["HunarClient"]
 class HunarClient(Protocol):
     """Async client for the Hunar Voice Agents API."""
 
-    #: Identifies which implementation is active, for logs and the UI banner.
-    mode: str
+    @property
+    def mode(self) -> str:
+        """Which implementation is active, for logs and the UI banner.
+
+        Declared read-only rather than as a plain attribute so an
+        implementation may compute it. The degrading client does exactly
+        that, reporting ``live`` until the key is rejected and ``mock``
+        afterwards.
+        """
+        ...
 
     async def list_agents(self, *, page: int = 1, page_size: int = 50) -> Page[Agent]: ...
 
