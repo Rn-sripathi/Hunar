@@ -101,9 +101,18 @@ export function AgentPreviewPanel({
             <p className="text-muted-foreground mb-1.5 text-xs font-medium tracking-wide uppercase">
               Standing instructions
             </p>
-            <pre className="bg-muted/50 max-h-[26rem] overflow-auto rounded-md border p-3 font-mono text-[11.5px] leading-relaxed whitespace-pre-wrap">
-              {preview.agent_prompt}
-            </pre>
+            {/* The fade marks the panel as scrollable. Without it a long
+                prompt simply stops mid-sentence at the clip boundary,
+                which reads as broken rendering rather than as more text. */}
+            <div className="relative">
+              <pre className="bg-muted/50 max-h-[26rem] overflow-auto rounded-md border p-3 font-mono text-[11.5px] leading-relaxed whitespace-pre-wrap">
+                {preview.agent_prompt}
+              </pre>
+              <div
+                aria-hidden
+                className="from-card pointer-events-none absolute inset-x-px bottom-px h-8 rounded-b-md bg-gradient-to-t to-transparent"
+              />
+            </div>
           </div>
 
           {preview.variables.length > 0 && (

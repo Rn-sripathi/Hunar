@@ -28,7 +28,7 @@ sys.path.insert(0, str(REPO_ROOT / "packages" / "hunar-sdk" / "src"))
 os.environ.setdefault("HUNAR_MODE", "mock")
 os.environ.setdefault("HUNAR_API_KEY", "not-used-for-schema-generation")
 
-from app.core.config import Settings  # noqa: E402
+from app.core.config import HunarMode, Settings  # noqa: E402
 from app.main import create_app  # noqa: E402
 
 
@@ -37,7 +37,7 @@ def main() -> int:
     if not destination.is_absolute():
         destination = REPO_ROOT / destination
 
-    app = create_app(Settings(hunar_mode="mock", hunar_api_key="schema-only"))
+    app = create_app(Settings(hunar_mode=HunarMode.MOCK, hunar_api_key="schema-only"))
     schema = app.openapi()
 
     destination.parent.mkdir(parents=True, exist_ok=True)

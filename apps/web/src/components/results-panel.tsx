@@ -85,9 +85,12 @@ function AnswerCell({ value, field }: { value: unknown; field: FieldSpec }) {
     return <span className="tabular-nums">{String(value)}</span>;
   }
 
+  // Summaries can run to a couple of sentences. Truncating keeps every
+  // column reachable without horizontal scrolling becoming the primary
+  // way to read the table; the full text is on hover and in the detail panel.
   const text = String(value);
   return (
-    <span className="block max-w-[18rem] truncate" title={text}>
+    <span className="block max-w-[16rem] truncate" title={text}>
       {text}
     </span>
   );
@@ -474,7 +477,10 @@ export function ResultsPanel({ jobId }: { jobId: string }) {
                       )}
                     </TableHead>
                   ))}
-                  <TableHead className="min-w-32 text-right">
+                  {/* Pinned right: with a dozen answer columns the decision
+                      buttons would otherwise sit off-screen, hiding the one
+                      action a recruiter came to this table to take. */}
+                  <TableHead className="bg-muted/50 sticky right-0 w-32 border-l text-right">
                     Decision
                   </TableHead>
                 </TableRow>
@@ -529,7 +535,7 @@ export function ResultsPanel({ jobId }: { jobId: string }) {
                     ))}
 
                     <TableCell
-                      className="text-right"
+                      className="bg-background sticky right-0 border-l text-right"
                       onClick={(event) => event.stopPropagation()}
                     >
                       {row.status === "COMPLETED" ? (

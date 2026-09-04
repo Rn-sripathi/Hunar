@@ -168,7 +168,12 @@ class Settings(BaseSettings):
     # ── access ───────────────────────────────────────────────
     demo_password: str = ""
     session_secret: str = INSECURE_SESSION_SECRET
-    cors_origins: str = "http://localhost:3000"
+
+    #: Both spellings of the local frontend are allowed by default.
+    #: `localhost` and `127.0.0.1` are different origins to a browser, so
+    #: allowing only one produces a blank dashboard whose requests fail
+    #: silently in the console while the API looks perfectly healthy.
+    cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
 
     # ── validation ───────────────────────────────────────────
     @field_validator("hunar_base_url", "public_api_base_url")
