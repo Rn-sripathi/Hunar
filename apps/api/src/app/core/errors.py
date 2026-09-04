@@ -262,9 +262,7 @@ def register_exception_handlers(app: FastAPI) -> None:
         # `exc_info=exc` rather than `.exception()`: this is a FastAPI
         # handler, not an `except` block, so the ambient exception context
         # a bare `.exception()` relies on is not guaranteed to be set.
-        logger.error(
-            "app.unhandled_exception", error_type=type(exc).__name__, exc_info=exc
-        )
+        logger.error("app.unhandled_exception", error_type=type(exc).__name__, exc_info=exc)
         return _render(
             code="internal_error",
             message="An unexpected error occurred.",

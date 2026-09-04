@@ -26,6 +26,7 @@ import re
 from datetime import time
 from enum import StrEnum
 from functools import lru_cache
+from pathlib import Path
 from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field, computed_field, field_validator, model_validator
@@ -40,6 +41,13 @@ __all__ = [
 ]
 
 _E164 = re.compile(r"^\+[1-9]\d{7,14}$")
+
+#: The repository root, resolved from this file rather than from the
+#: working directory. Alembic runs from ``apps/api`` and uvicorn from the
+#: repository root, so a relative ``.env`` would be found by one and not
+#: the other, and the failure would look like a missing API key rather
+#: than a missing file.
+_REPO_ROOT = Path(__file__).resolve().parents[5]
 
 #: Sentinel value for the session secret. Not a credential; it exists so a
 #: production deploy that forgot to set a real one is refused at startup
@@ -91,7 +99,10 @@ class Settings(BaseSettings):
     """Validated application settings, loaded from the environment."""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        # Both are consulted, later winning. The repository root covers
+        # every tool regardless of where it was invoked; the bare name
+        # still allows a per-directory override in local experiments.
+        env_file=(_REPO_ROOT / ".env", ".env"),
         env_file_encoding="utf-8",
         extra="ignore",
         case_sensitive=False,
@@ -120,6 +131,17 @@ class Settings(BaseSettings):
 
     #: Root of every webhook callback URL. Must be public and HTTPS.
     public_api_base_url: str = "https://localhost"
+
+    #: Speed multiplier for the demo client's simulated call lifecycle.
+    #: Left at 1.0 for the deployed demo so the monitoring screen animates
+    #: believably; raised sharply in tests so a suite is not gated on
+    #: thirteen seconds of pretend ringing.
+    hunar_fake_speed: float = Field(default=1.0, gt=0)
+
+    #: How stale a non-terminal call may be before a read refreshes it
+    #: from the upstream API. This is the only source of live progress,
+    #: since Hunar pushes a status webhook only once a call has finished.
+    reconcile_interval_seconds: float = Field(default=8.0, ge=0)
 
     # ── database ─────────────────────────────────────────────
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/hunar"

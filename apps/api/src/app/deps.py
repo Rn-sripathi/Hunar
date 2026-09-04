@@ -178,7 +178,10 @@ def build_hunar_client(settings: Settings) -> HunarClient:
     """
     if settings.hunar_mode is HunarMode.MOCK:
         logger.info("hunar.client_mode", mode="mock", reason="configured")
-        return FakeHunarClient(api_key=settings.hunar_api_key or "fake-local-key")
+        return FakeHunarClient(
+            api_key=settings.hunar_api_key or "fake-local-key",
+            speed=settings.hunar_fake_speed,
+        )
 
     live = LiveHunarClient(settings.hunar_api_key, base_url=settings.hunar_base_url)
 
@@ -189,7 +192,10 @@ def build_hunar_client(settings: Settings) -> HunarClient:
     logger.info("hunar.client_mode", mode="auto", note="will fall back on 401 or 402")
     return DegradingHunarClient(
         live=live,
-        fake=FakeHunarClient(api_key=settings.hunar_api_key or "fake-local-key"),
+        fake=FakeHunarClient(
+            api_key=settings.hunar_api_key or "fake-local-key",
+            speed=settings.hunar_fake_speed,
+        ),
     )
 
 

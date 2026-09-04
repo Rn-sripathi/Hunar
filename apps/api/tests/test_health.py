@@ -9,9 +9,21 @@ could do.
 
 from __future__ import annotations
 
+from typing import Any
+
 import httpx
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from app import __version__
+
+
+def _broken_session_factory() -> async_sessionmaker[Any]:
+    """A session factory pointed at a database that cannot be reached."""
+    engine = create_async_engine(
+        "postgresql+asyncpg://nobody:nobody@127.0.0.1:1/nothing",
+        connect_args={"timeout": 1},
+    )
+    return async_sessionmaker(bind=engine, expire_on_commit=False)
 
 
 class TestLiveness:
@@ -32,8 +44,23 @@ class TestLiveness:
 
 
 class TestReadiness:
-    async def test_reports_the_database_as_unreachable(self, client: httpx.AsyncClient) -> None:
-        """With no database running, readiness should fail honestly."""
+    async def test_actually_queries_the_database(self, client: httpx.AsyncClient) -> None:
+        """Readiness runs a real query rather than assuming a connection."""
+        response = await client.get("/readyz")
+        assert response.status_code == 200
+
+        body = response.json()
+        assert body["ready"] is True
+        database = next(d for d in body["dependencies"] if d["name"] == "database")
+        assert database["ok"] is True
+
+    async def test_reports_a_failure_when_the_database_is_gone(
+        self, app: Any, client: httpx.AsyncClient
+    ) -> None:
+        """A broken database must surface as 503, not as a cheerful 200."""
+        await app.state.engine.dispose()
+        app.state.session_factory = _broken_session_factory()
+
         response = await client.get("/readyz")
         assert response.status_code == 503
 

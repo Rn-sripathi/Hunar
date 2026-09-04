@@ -47,10 +47,11 @@ ignore = [
 [tool.ruff.lint.isort]
 known-first-party = ["hunar_sdk", "app"]
 
-[tool.ruff.lint.flake8-tidy-imports.banned-api]
-# The two domains must stay independent; they may only share `core` and the SDK.
-"app.hiring".msg = "people/ must not import from hiring/. Share via app.core or hunar_sdk."
-"app.people".msg = "hiring/ must not import from people/. Share via app.core or hunar_sdk."
+# The hiring and people domains must stay independent, but that rule is
+# directional and ruff's banned-api is global: a blanket ban also stops
+# hiring importing itself. The boundary is enforced by an architecture
+# test instead, which can express "only from the opposite domain".
+# See apps/api/tests/test_architecture.py
 
 [tool.ruff.format]
 quote-style = "double"

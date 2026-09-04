@@ -1,0 +1,32 @@
+# Postgres only. The API and the web app run natively so reloads stay fast;
+# containerising them would add a rebuild to every edit for no benefit on a
+# three-day build.
+#
+#   docker compose up -d
+#
+# Production uses Neon, which is the same Postgres 16 wire protocol, so the
+# JSONB behaviour this app depends on is identical in both places.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: hunar-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: hunar
+    ports:
+      - "5432:5432"
+    volumes:
+      - hunar-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      # Compose waits for this, so `docker compose up -d` returning means
+      # the database is genuinely accepting connections, not merely booting.
+      test: ["CMD-SHELL", "pg_isready -U postgres -d hunar"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  hunar-pgdata:
