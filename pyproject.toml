@@ -1,0 +1,119 @@
+# uv workspace root. Deliberately a *virtual* root: it owns no code, only
+# the member list and the shared tool configuration, so ruff/mypy/pytest
+# behave identically in the SDK, the API and CI.
+
+[tool.uv.workspace]
+members = ["apps/api", "packages/hunar-sdk"]
+
+[tool.uv.sources]
+hunar-sdk = { workspace = true }
+
+# ─────────────────────────────────────────────────────────────
+# Ruff — lint and format. Replaces black + isort + flake8.
+# ─────────────────────────────────────────────────────────────
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["apps/api/src", "packages/hunar-sdk/src"]
+extend-exclude = ["apps/api/migrations/versions"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W",    # pycodestyle
+    "F",         # pyflakes
+    "I",         # isort
+    "N",         # pep8-naming
+    "UP",        # pyupgrade
+    "B",         # bugbear
+    "C4",        # comprehensions
+    "SIM",       # simplify
+    "TID",       # tidy imports
+    "RUF",       # ruff-specific
+    "ASYNC",     # async correctness
+    "S",         # bandit security
+    "DTZ",       # naive-datetime bans
+    "LOG",       # logging correctness
+]
+ignore = [
+    "S101",    # assert is fine in tests and in internal invariants
+    "B008",    # FastAPI Depends() in defaults is the documented idiom
+    "E501",    # ruff-format owns line length
+]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["S105", "S106", "S311"]   # fake secrets and non-crypto RNG in tests
+"**/scripts/**" = ["S105", "S106", "T201"] # spike scripts print by design
+
+[tool.ruff.lint.isort]
+known-first-party = ["hunar_sdk", "app"]
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+# The two domains must stay independent; they may only share `core` and the SDK.
+"app.hiring".msg = "people/ must not import from hiring/. Share via app.core or hunar_sdk."
+"app.people".msg = "hiring/ must not import from people/. Share via app.core or hunar_sdk."
+
+[tool.ruff.format]
+quote-style = "double"
+
+# ─────────────────────────────────────────────────────────────
+# mypy — strict. The Hunar payloads are the whole product, so the
+# types describing them have to be trustworthy.
+# ─────────────────────────────────────────────────────────────
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unreachable = true
+warn_return_any = true
+disallow_untyped_defs = true
+disallow_any_generics = true
+no_implicit_reexport = true
+plugins = ["pydantic.mypy"]
+mypy_path = "apps/api/src:packages/hunar-sdk/src"
+exclude = ["apps/api/migrations/versions/"]
+
+[[tool.mypy.overrides]]
+module = ["apscheduler.*", "phonenumbers.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["tests.*"]
+disallow_untyped_defs = false
+
+[tool.pydantic-mypy]
+init_typed = true
+warn_required_dynamic_aliases = true
+
+# ─────────────────────────────────────────────────────────────
+# pytest
+# ─────────────────────────────────────────────────────────────
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["packages/hunar-sdk/tests", "apps/api/tests"]
+pythonpath = ["apps/api/src", "packages/hunar-sdk/src"]
+addopts = "-q --strict-markers --strict-config"
+filterwarnings = ["error::DeprecationWarning"]
+markers = [
+    "live: hits the real Hunar API and spends call minutes; deselected by default",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["apps/api/src/app", "packages/hunar-sdk/src/hunar_sdk"]
+omit = ["*/migrations/*", "*/tests/*"]
+
+[tool.coverage.report]
+exclude_also = ["if TYPE_CHECKING:", "raise NotImplementedError", "\\.\\.\\."]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "pytest-cov>=6.0",
+    "respx>=0.22",
+    "ruff>=0.8",
+    "mypy>=1.13",
+    "types-python-dateutil>=2.9",
+    "asgi-lifespan>=2.1",
+    "aiosqlite>=0.20",
+]

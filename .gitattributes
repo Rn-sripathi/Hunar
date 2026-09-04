@@ -1,0 +1,24 @@
+# Normalise line endings so the repo is identical on Windows, macOS, Linux
+# and in CI. Without this, a Windows checkout commits CRLF and every diff
+# on a Linux runner looks like the whole file changed.
+* text=auto eol=lf
+
+# Shell scripts must keep LF or they will not execute in a container.
+*.sh text eol=lf
+*.bash text eol=lf
+
+# Binary files git must never try to normalise.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.mp3 binary
+*.wav binary
+*.woff binary
+*.woff2 binary
+*.pdf binary
+
+# Lockfiles are generated. Collapsing them in diffs keeps reviews readable.
+uv.lock linguist-generated=true
+package-lock.json linguist-generated=true

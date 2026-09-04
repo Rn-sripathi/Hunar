@@ -1,0 +1,31 @@
+[project]
+name = "hunar-api"
+version = "0.1.0"
+description = "FastAPI backend for the AI Hiring Assistant and People Search & Reachout apps"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "hunar-sdk",
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "pydantic>=2.10",
+    "pydantic-settings>=2.6",
+    "sqlalchemy[asyncio]>=2.0.36",
+    "asyncpg>=0.30",
+    "alembic>=1.14",
+    "greenlet>=3.1",
+    "httpx>=0.28",
+    "tenacity>=9.0",
+    "apscheduler>=3.11",
+    "structlog>=24.4",
+    "phonenumbers>=8.13",
+    "python-multipart>=0.0.20",
+    "itsdangerous>=2.2",
+    "anthropic>=0.40",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/app"]
