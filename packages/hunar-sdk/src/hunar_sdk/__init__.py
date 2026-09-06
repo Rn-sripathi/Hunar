@@ -58,6 +58,7 @@ from .models import (
     RetryConfig,
     normalize_e164,
 )
+from .personas import PERSONA_NAMES, persona_name_for
 from .protocol import HunarClient
 from .sanitize import (
     ALLOWED_PROMPT_VARIABLES,
@@ -79,6 +80,7 @@ __all__ = [
     "DEFAULT_BASE_URL",
     "DEFAULT_MAX_SKEW_SECONDS",
     "NON_TERMINAL_STATUSES",
+    "PERSONA_NAMES",
     "TERMINAL_STATUSES",
     "Agent",
     "AgentCreate",
@@ -116,6 +118,7 @@ __all__ = [
     "__version__",
     "compute_signature",
     "normalize_e164",
+    "persona_name_for",
     "sanitize",
     "sanitize_custom_data",
     "strip_braces",
