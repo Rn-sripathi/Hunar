@@ -158,10 +158,18 @@ def build_engine(settings: Settings) -> AsyncEngine:
         pool_size=settings.db_pool_size,
         max_overflow=2,
         # Neon suspends idle compute, so a pooled connection can be dead by
-        # the time it is reused. Recycling and pre-ping turn what would be a
-        # user-visible error into a transparent reconnect.
+        # the time it is reused. Pre-ping turns what would be a
+        # user-visible error into a transparent reconnect. It costs one
+        # extra round trip per checkout, which is negligible when the
+        # database is nearby and painful when it is not.
         pool_pre_ping=True,
-        pool_recycle=300,
+        # Deliberately long. Opening a connection to a distant Neon region
+        # measured at ~2.4 seconds against ~0.5 seconds for a query on an
+        # existing one, so recycling aggressively means paying that
+        # handshake over and over. Pre-ping already covers a connection
+        # that died in the meantime, so the recycle window only needs to
+        # stay under the provider's own idle cutoff.
+        pool_recycle=1_500,
         connect_args=connect_args,
     )
 

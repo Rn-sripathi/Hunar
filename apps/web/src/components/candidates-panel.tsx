@@ -1,7 +1,14 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { PhoneOutgoing, Trash2, Upload, UserPlus, Users } from "lucide-react";
+import {
+  Loader2,
+  PhoneOutgoing,
+  Trash2,
+  Upload,
+  UserPlus,
+  Users,
+} from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -29,6 +36,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { api, ApiError, queryKeys } from "@/lib/api";
+import type { CandidateOut } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 /**
  * Loading candidates and starting the calls.
@@ -111,10 +120,63 @@ export function CandidatesPanel({
       }),
   });
 
+  // Tracked as a set rather than from the mutation's own pending flag,
+  // because a mutation reports on its latest call only. Deleting three
+  // rows quickly would otherwise spin one of them while the other two sat
+  // there looking untouched.
+  const [removing, setRemoving] = useState<Set<string>>(new Set());
+
+  /**
+   * Deleting is optimistic because the round trip is slow enough to feel
+   * broken: the database is a long way from the user, so a delete plus
+   * its refetches can take ten seconds. The row goes immediately and is
+   * put back if the server refuses, which is the honest version of fast:
+   * the optimism is visible and reversible, not a lie about what happened.
+   */
   const remove = useMutation({
     mutationFn: (candidateId: string) =>
       api.candidates.remove(jobId, candidateId),
-    onSuccess: refreshAll,
+
+    onMutate: async (candidateId) => {
+      setRemoving((current) => new Set(current).add(candidateId));
+
+      // Stop an in-flight refetch from landing after our edit and
+      // resurrecting the row.
+      await queryClient.cancelQueries({
+        queryKey: queryKeys.candidates(jobId),
+      });
+      const previous = queryClient.getQueryData<CandidateOut[]>(
+        queryKeys.candidates(jobId),
+      );
+      queryClient.setQueryData<CandidateOut[]>(
+        queryKeys.candidates(jobId),
+        (rows) => (rows ?? []).filter((row) => row.id !== candidateId),
+      );
+      return { previous };
+    },
+
+    onError: (error, _candidateId, context) => {
+      // Put the row back. A candidate that quietly survives a delete the
+      // user believes worked is how someone gets phoned by mistake.
+      if (context?.previous) {
+        queryClient.setQueryData(queryKeys.candidates(jobId), context.previous);
+      }
+      toast.error("Could not remove that candidate", {
+        description: error instanceof ApiError ? error.message : undefined,
+      });
+    },
+
+    onSettled: (_data, _error, candidateId) => {
+      setRemoving((current) => {
+        const next = new Set(current);
+        next.delete(candidateId);
+        return next;
+      });
+      // Only the counts need re-reading. The candidate list is already
+      // correct locally, and refetching it here was a third of the wait.
+      void queryClient.invalidateQueries({ queryKey: queryKeys.job(jobId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.jobs });
+    },
   });
 
   const launch = useMutation({
@@ -194,8 +256,17 @@ export function CandidatesPanel({
               disabled={!name.trim() || !mobile.trim() || add.isPending}
               onClick={() => add.mutate()}
             >
-              <UserPlus className="size-4" />
-              Add candidate
+              {add.isPending ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Adding…
+                </>
+              ) : (
+                <>
+                  <UserPlus className="size-4" />
+                  Add candidate
+                </>
+              )}
             </Button>
 
             <div className="relative py-1">
@@ -227,8 +298,17 @@ export function CandidatesPanel({
               disabled={importCsv.isPending}
               onClick={() => fileInput.current?.click()}
             >
-              <Upload className="size-4" />
-              {importCsv.isPending ? "Importing…" : "Import CSV"}
+              {importCsv.isPending ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Importing…
+                </>
+              ) : (
+                <>
+                  <Upload className="size-4" />
+                  Import CSV
+                </>
+              )}
             </Button>
             <p className="text-muted-foreground text-xs">
               Needs a name column and a phone column. Other columns are kept and
@@ -276,31 +356,49 @@ export function CandidatesPanel({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {rows.map((candidate) => (
-                    <TableRow key={candidate.id}>
-                      <TableCell className="font-medium">
-                        {candidate.name}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground font-mono text-xs">
-                        {candidate.mobile_masked || "•••••"}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground text-xs capitalize">
-                        {candidate.source.toLowerCase()}
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="text-muted-foreground hover:text-destructive size-8"
-                          aria-label={`Remove ${candidate.name}`}
-                          onClick={() => remove.mutate(candidate.id)}
-                        >
-                          <Trash2 className="size-3.5" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {rows.map((candidate) => {
+                    const isRemoving = removing.has(candidate.id);
+                    return (
+                      <TableRow
+                        key={candidate.id}
+                        className={cn(
+                          "transition-opacity",
+                          isRemoving && "pointer-events-none opacity-50",
+                        )}
+                      >
+                        <TableCell className="font-medium">
+                          {candidate.name}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground font-mono text-xs">
+                          {candidate.mobile_masked || "•••••"}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground text-xs capitalize">
+                          {candidate.source.toLowerCase()}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="text-muted-foreground hover:text-destructive size-8"
+                            aria-label={
+                              isRemoving
+                                ? `Removing ${candidate.name}`
+                                : `Remove ${candidate.name}`
+                            }
+                            disabled={isRemoving}
+                            onClick={() => remove.mutate(candidate.id)}
+                          >
+                            {isRemoving ? (
+                              <Loader2 className="size-3.5 animate-spin" />
+                            ) : (
+                              <Trash2 className="size-3.5" />
+                            )}
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>

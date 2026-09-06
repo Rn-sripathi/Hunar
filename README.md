@@ -172,6 +172,24 @@ credential has ever entered this repository's history. Logs redact keys,
 signatures and phone numbers by processor rather than at each call site. Phone
 numbers are masked to their last four digits everywhere they are displayed.
 
+## Put the database near its users
+
+This is the single biggest thing affecting how the app feels, and it is a
+hosting choice rather than a code one.
+
+Measured from India against a Neon project in `us-east-2`:
+
+| | |
+|---|---|
+| One database round trip | 483 ms |
+| Opening a new connection | 2.4 s |
+| A typical API request | 2 to 4 s |
+
+Nothing in the application can make up for that. Create the Neon project in
+the region nearest your users, `ap-south-1` for India, and the same
+operations drop to tens of milliseconds. The UI hides some of it with
+optimistic updates, but hiding latency is not the same as not having it.
+
 ## Limitations, honestly
 
 - **Reconciliation is in-process**, so the API is pinned to one instance. Real
