@@ -175,6 +175,18 @@ async def launch_calls(
     blocked: list[dict[str, str]] = []
     skipped = 0
 
+    # Without a publicly reachable URL there is nothing for Hunar to call
+    # back to. Sending one anyway buys eight minutes of failed retries and
+    # no results; omitting it lets reconciliation do the work, which it
+    # does regardless because the status webhook only fires at the end.
+    deliverable = settings.webhooks_deliverable
+    if not deliverable:
+        logger.info(
+            "hiring.webhooks_not_deliverable",
+            public_url=settings.public_api_base_url,
+            note="placing calls without callbacks; results come from polling",
+        )
+
     for candidate in candidates:
         if candidate.id in already_called:
             skipped += 1
@@ -208,11 +220,15 @@ async def launch_calls(
                 persona_name=job.persona_name,
                 extra=candidate.extra,
             ),
-            callback_config=CallbackConfig(
-                call_status_callback_url=settings.webhook_url(token, "status"),
-                call_recording_callback_url=settings.webhook_url(token, "recording"),
-                call_result_callback_url=settings.webhook_url(token, "result"),
-                call_summary_callback_url=settings.webhook_url(token, "summary"),
+            callback_config=(
+                CallbackConfig(
+                    call_status_callback_url=settings.webhook_url(token, "status"),
+                    call_recording_callback_url=settings.webhook_url(token, "recording"),
+                    call_result_callback_url=settings.webhook_url(token, "result"),
+                    call_summary_callback_url=settings.webhook_url(token, "summary"),
+                )
+                if deliverable
+                else None
             ),
         )
 

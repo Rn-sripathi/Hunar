@@ -271,6 +271,28 @@ class Settings(BaseSettings):
     def allowlisted_numbers(self) -> frozenset[str]:
         return frozenset(entry.e164 for entry in self.allowlist)
 
+    @property
+    def webhooks_deliverable(self) -> bool:
+        """Whether Hunar could actually reach our webhook endpoint.
+
+        A callback URL pointing at localhost is not merely useless, it is
+        worse than sending none: the provider accepts it, tries to
+        deliver, retries for eight minutes, and the operator sees nothing
+        to explain the silence. Detecting it lets the call be placed
+        without callbacks, leaving reconciliation to bring the results
+        back, which it does anyway.
+        """
+        url = self.public_api_base_url.lower()
+        if not url.startswith("https://"):
+            return False
+        host = url.removeprefix("https://").split("/")[0].split(":")[0]
+        # These are hosts we refuse to hand out, not an address to bind to,
+        # so the "binds to all interfaces" warning does not apply.
+        unreachable = {"localhost", "127.0.0.1", "0.0.0.0", "::1"}  # noqa: S104
+        return host not in unreachable and not host.endswith(
+            (".local", ".internal", ".localdomain")
+        )
+
     def webhook_url(self, token: str, event: str) -> str:
         """Build the callback URL for one call and one event type.
 
