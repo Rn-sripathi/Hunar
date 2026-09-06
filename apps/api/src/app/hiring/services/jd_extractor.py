@@ -59,6 +59,16 @@ class DraftQuestion(BaseModel):
     is_knockout: bool = Field(
         description="True only for genuine hard requirements stated in the description"
     )
+    minimum: float | None = Field(
+        default=None,
+        description=(
+            "For a NUMBER question only. Copy the exact threshold the description "
+            "states, so 'minimum 1 year of experience' gives 1 and 'at least 3 years' "
+            "gives 3. Use null when the description states no threshold. Never use 0 "
+            "as a stand-in for 'no threshold', because a minimum of zero excludes "
+            "nobody. Always null for every other answer type."
+        ),
+    )
 
 
 class JobDraft(BaseModel):
@@ -620,6 +630,25 @@ def _sanitise(draft: JobDraft) -> JobDraft:
         question.weight = min(max(question.weight, 0.0), 10.0)
         if question.answer_type != AnswerType.ENUM.value:
             question.enum_options = []
+        if question.answer_type != AnswerType.NUMBER.value:
+            question.minimum = None
+        # A minimum of zero or less filters nobody out, so it is the same
+        # thing as no threshold. Keeping it would leave a requirement that
+        # looks enforced and never is.
+        if question.minimum is not None and question.minimum <= 0:
+            question.minimum = None
+
+        # A knockout needs something to judge against. A boolean one is
+        # unambiguous, but a numeric or text requirement with no threshold
+        # can never fire, and a "required" badge that does nothing is
+        # worse than no badge: it tells a recruiter someone was screened
+        # out on a condition that was never actually applied.
+        cannot_judge = (
+            question.answer_type == AnswerType.NUMBER.value and question.minimum is None
+        ) or question.answer_type in (AnswerType.STRING.value, AnswerType.ENUM.value)
+        if question.is_knockout and cannot_judge:
+            question.is_knockout = False
+
         cleaned.append(question)
 
     draft.questions = cleaned or heuristic_draft("").questions

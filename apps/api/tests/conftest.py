@@ -44,6 +44,11 @@ def settings() -> Settings:
         database_url="sqlite+aiosqlite:///:memory:",
         demo_allowlist="+919000000001|Test line one,+919000000002|Test line two",
         public_api_base_url="https://test.invalid",
+        # Explicitly blank, not merely unset. Settings falls back to the
+        # repository `.env`, so leaving this out lets a developer's real
+        # key leak into the suite: tests would spend their credit, depend
+        # on the network, and pass or fail differently on each machine.
+        openai_api_key="",
         # Collapse the simulated call lifecycle and remove the reconcile
         # throttle, so a suite is not gated on thirteen seconds of
         # pretend ringing per call.
@@ -103,6 +108,17 @@ def session_factory(app: FastAPI) -> async_sessionmaker[AsyncSession]:
 def voice_client(app: FastAPI) -> Any:
     """The demo Hunar client this application is running against."""
     return app.state.hunar_client
+
+
+@pytest.fixture(autouse=True)
+def _no_outbound_llm_calls(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Belt and braces against the suite calling a paid API.
+
+    The settings fixture already blanks the key, but a future test that
+    builds its own Settings would pick the real one up from `.env`.
+    Clearing the environment variable closes that path for every test.
+    """
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
 
 
 @pytest.fixture(autouse=True)

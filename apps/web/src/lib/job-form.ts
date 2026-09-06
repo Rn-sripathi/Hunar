@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import type {
   AnswerType,
+  DraftQuestion,
   JobCreate,
   JobDraft,
   QuestionInput,
@@ -202,6 +203,31 @@ export function toJobCreate(values: JobFormValues): JobCreate {
 }
 
 /**
+ * Turn an extracted question into the form's scoring shorthand.
+ *
+ * Only fills in what the description actually stated. A yes-or-no
+ * question that carries weight obviously scores on "yes", and a numeric
+ * threshold the description gave becomes a minimum. Everything else is
+ * left blank, because how candidates are ranked is a judgement about
+ * this hire rather than something to infer from prose.
+ */
+function deriveRule(question: DraftQuestion): string {
+  if (
+    question.answer_type === "BOOLEAN" &&
+    (question.is_knockout || question.weight > 0)
+  ) {
+    return "yes";
+  }
+  if (
+    question.answer_type === "NUMBER" &&
+    typeof question.minimum === "number"
+  ) {
+    return `at least ${question.minimum}`;
+  }
+  return "";
+}
+
+/**
  * Pour an extracted draft into the form.
  *
  * Every value stays editable. The draft is a starting point that saves
@@ -213,9 +239,7 @@ export function fromDraft(draft: JobDraft, jdText: string): JobFormValues {
     text: question.text,
     answer_type: question.answer_type,
     enum_options_raw: (question.enum_options ?? []).join(", "),
-    // Scoring rules are left blank on purpose. How candidates get ranked
-    // is a judgement about this hire, not something to infer from prose.
-    rule_raw: "",
+    rule_raw: deriveRule(question),
     weight: question.weight,
     is_knockout: question.is_knockout,
   }));

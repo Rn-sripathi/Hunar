@@ -564,6 +564,11 @@ export interface components {
        * @description True only for genuine hard requirements stated in the description
        */
       is_knockout: boolean;
+      /**
+       * Minimum
+       * @description For a NUMBER question only, the smallest acceptable answer when the description states one, such as 1 for 'minimum 1 year of experience'. Null when no threshold is given, and null for every other answer type.
+       */
+      minimum?: number | null;
     };
     /**
      * ExtractRequest
