@@ -239,6 +239,7 @@ async def launch_calls(
                 job_title=job.title,
                 company_name=job.company_name,
                 persona_name=job.persona_name,
+                voice_persona=job.voice_persona,
                 extra=candidate.extra,
             ),
             callback_config=(

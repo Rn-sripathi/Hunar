@@ -15,6 +15,7 @@ import pytest
 from app.hiring.models import AnswerType
 from app.hiring.schemas import QuestionInput
 from app.hiring.services.prompt_builder import (
+    PERSONA_NAMES,
     SYSTEM_FIELDS,
     assign_field_keys,
     build_agent_payload,
@@ -23,6 +24,8 @@ from app.hiring.services.prompt_builder import (
     build_preview,
     build_result_prompt,
     build_result_schema,
+    custom_data_for,
+    persona_name_for,
     slugify_field_key,
 )
 from hunar_sdk.sanitize import ALLOWED_PROMPT_VARIABLES
@@ -238,6 +241,80 @@ class TestAgentPrompt:
             language="ENGLISH",
         )
         assert len(prompt) < 8000
+
+
+class TestPersonaName:
+    """The name the agent says must match the voice it says it in.
+
+    A hardcoded default meant a role using the SAM voice opened with "My
+    name is Neha" in a male voice. A candidate hears that in the first
+    sentence and distrusts the rest of the call.
+    """
+
+    @pytest.mark.parametrize(
+        ("voice", "expected"),
+        [
+            ("NEHA", "Neha"),
+            ("ROY", "Roy"),
+            ("ZOE", "Zoe"),
+            ("SAM", "Sam"),
+            ("MIRA", "Mira"),
+            ("EESHA", "Eesha"),
+        ],
+    )
+    def test_the_name_follows_the_voice(self, voice: str, expected: str) -> None:
+        assert persona_name_for(voice) == expected
+
+    def test_every_voice_the_form_offers_has_a_name(self) -> None:
+        """A voice with no name would silently fall back and mismatch again."""
+        for voice in ("NEHA", "ROY", "ZOE", "SAM", "MIRA", "EESHA"):
+            assert voice in PERSONA_NAMES
+
+    def test_an_explicit_name_wins(self) -> None:
+        """A recruiter may want the agent to use the company's own name."""
+        assert persona_name_for("SAM", "Anjali") == "Anjali"
+
+    def test_a_blank_override_falls_back_to_the_voice(self) -> None:
+        assert persona_name_for("ROY", "") == "Roy"
+        assert persona_name_for("ROY", "   ") == "Roy"
+
+    def test_an_unknown_voice_gets_a_neutral_name(self) -> None:
+        """If the provider adds a voice, do not guess and get it wrong."""
+        assert persona_name_for("BRAND_NEW_VOICE") == "Priya"
+
+    def test_the_agent_payload_carries_the_matching_name(self) -> None:
+        payload = build_agent_payload(
+            title="Rider",
+            company_name="Acme",
+            location=None,
+            description_raw="",
+            questions=[question("Experience")],
+            voice_persona="SAM",
+        )
+        assert payload.persona_name == "Sam"
+
+    def test_the_spoken_name_matches_the_stored_one(self) -> None:
+        """The introduction is interpolated at call time from custom_data.
+
+        If the two derive the name differently, the agent introduces
+        itself as one person while the stored script says another.
+        """
+        payload = build_agent_payload(
+            title="Rider",
+            company_name="Acme",
+            location=None,
+            description_raw="",
+            questions=[question("Experience")],
+            voice_persona="ROY",
+        )
+        spoken = custom_data_for(
+            candidate_name="Asha",
+            job_title="Rider",
+            company_name="Acme",
+            persona_name=None,
+            voice_persona="ROY",
+        )
+        assert payload.persona_name == spoken["persona_name"] == "Roy"
 
 
 class TestPreviewAndPayload:

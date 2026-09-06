@@ -31,6 +31,7 @@ from hunar_sdk import AgentCreate, Language, VoicePersona
 from hunar_sdk.sanitize import sanitize
 
 __all__ = [
+    "PERSONA_NAMES",
     "SYSTEM_FIELDS",
     "build_agent_payload",
     "build_agent_prompt",
@@ -38,6 +39,7 @@ __all__ = [
     "build_preview",
     "build_result_prompt",
     "build_result_schema",
+    "persona_name_for",
     "slugify_field_key",
 ]
 
@@ -81,6 +83,38 @@ SYSTEM_FIELDS: tuple[tuple[str, str, AnswerType, str], ...] = (
         "one or two sentences summarising the candidate's suitability, in plain English",
     ),
 )
+
+#: The name the agent gives when it introduces itself, per voice.
+#:
+#: This has to follow the voice, not sit beside it. A hardcoded name meant
+#: a role using the SAM voice opened with "My name is Neha" in a male
+#: voice, which is the kind of detail that makes a candidate distrust the
+#: whole call before the first question.
+PERSONA_NAMES: dict[str, str] = {
+    "NEHA": "Neha",
+    "ROY": "Roy",
+    "ZOE": "Zoe",
+    "SAM": "Sam",
+    "MIRA": "Mira",
+    "EESHA": "Eesha",
+}
+
+#: Used only if the provider adds a voice we have no name for. Neutral on
+#: purpose: a wrong-sounding name is worse than a plain one.
+_FALLBACK_PERSONA_NAME = "Priya"
+
+
+def persona_name_for(voice_persona: str, override: str | None = None) -> str:
+    """The name this agent should say, given its voice.
+
+    An explicit override wins, so a recruiter can call the agent whatever
+    the company wants. Otherwise the name is derived from the voice, which
+    is the only way the two cannot drift apart.
+    """
+    if override and override.strip():
+        return sanitize(override, max_length=60)
+    return PERSONA_NAMES.get(voice_persona.upper(), _FALLBACK_PERSONA_NAME)
+
 
 _MAX_JD_CHARS = 3500
 _MAX_KEY_WORDS = 5
@@ -358,7 +392,7 @@ def build_agent_payload(
         name=safe_name,
         voice_persona=VoicePersona(voice_persona),
         language=Language(language),
-        persona_name=sanitize(persona_name, max_length=60) if persona_name else "Neha",
+        persona_name=persona_name_for(voice_persona, persona_name),
         introduction=preview.introduction,
         objective=preview.objective,
         agent_prompt=preview.agent_prompt,
@@ -373,16 +407,22 @@ def custom_data_for(
     job_title: str,
     company_name: str,
     persona_name: str | None,
+    voice_persona: str = "NEHA",
     extra: dict[str, Any] | None = None,
 ) -> dict[str, str]:
-    """Per-candidate values injected into the agent's ``{variables}``."""
+    """Per-candidate values injected into the agent's ``{variables}``.
+
+    ``persona_name`` is derived from the voice by the same rule used when
+    the agent was created, so the name spoken on the call and the name in
+    the stored prompt cannot disagree.
+    """
     from hunar_sdk.sanitize import sanitize_custom_data
 
     data: dict[str, Any] = {
         "candidate_name": candidate_name,
         "job_title": job_title,
         "company_name": company_name,
-        "persona_name": persona_name or "Neha",
+        "persona_name": persona_name_for(voice_persona, persona_name),
     }
     if extra:
         data.update(extra)
