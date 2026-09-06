@@ -178,6 +178,12 @@ class JobSummary(_Out):
     completed_count: int = 0
     shortlisted_count: int = 0
 
+    #: Calls genuinely still running. Deliberately its own field rather
+    #: than `call_count - completed_count`: attempts include retries and
+    #: terminal failures, so subtracting would report a finished role as
+    #: having calls in flight.
+    in_flight_count: int = 0
+
 
 class AgentPreview(BaseModel):
     """Exactly what the voice agent will be told, shown before any call.

@@ -30,9 +30,9 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 function JobCard({ job }: { job: JobSummary }) {
-  const called = job.call_count ?? 0;
   const completed = job.completed_count ?? 0;
   const candidates = job.candidate_count ?? 0;
+  const inFlight = job.in_flight_count ?? 0;
   const progress =
     candidates > 0 ? Math.round((completed / candidates) * 100) : 0;
 
@@ -78,9 +78,9 @@ function JobCard({ job }: { job: JobSummary }) {
             <span>
               {completed} of {candidates} screened
             </span>
-            {called > completed && (
+            {inFlight > 0 && (
               <span className="text-blue-600 dark:text-blue-400">
-                {called - completed} in flight
+                {inFlight} calling now
               </span>
             )}
           </div>

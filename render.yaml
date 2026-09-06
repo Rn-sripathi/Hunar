@@ -1,0 +1,77 @@
+# Render blueprint for the API.
+#
+# Two settings here are load-bearing rather than conventional:
+#
+# `numInstances: 1` is required, not an economy. Reconciliation runs
+# in-process, so a second instance would poll the same calls twice. The
+# honest fix for real scale is a separate worker holding a lock, which is
+# out of scope here and is written up in the README.
+#
+# The Starter plan rather than Free is also deliberate. A free instance
+# sleeps when idle, and a sleeping instance both drops inbound webhooks
+# and freezes the reconciler that live call status depends on. The demo
+# would appear to hang for the first person to open it after a quiet hour.
+
+services:
+  - type: web
+    name: hunar-api
+    runtime: python
+    plan: starter
+    region: singapore # closest to Indian mobile numbers and to Neon ap-southeast
+    numInstances: 1
+    rootDir: .
+    healthCheckPath: /healthz
+
+    buildCommand: |
+      pip install --upgrade pip uv
+      uv sync --all-packages --frozen
+
+    # Migrations run before the new build takes traffic, so a request never
+    # arrives against a schema that has not been applied yet.
+    preDeployCommand: cd apps/api && uv run alembic upgrade head
+
+    startCommand: uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT
+
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12"
+      - key: PYTHONPATH
+        value: /opt/render/project/src/apps/api/src:/opt/render/project/src/packages/hunar-sdk/src
+      - key: ENVIRONMENT
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+
+      # Set in the dashboard, never here.
+      - key: HUNAR_API_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: DEMO_PASSWORD
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: PDL_API_KEY
+        sync: false
+      - key: DEMO_ALLOWLIST
+        sync: false
+
+      # Starts live and falls back to recorded data when the key expires,
+      # saying so in the UI rather than failing silently.
+      - key: HUNAR_MODE
+        value: auto
+
+      # Must match this service's own public URL: it is the root of every
+      # webhook callback URL, and Hunar rejects non-HTTPS callbacks.
+      - key: PUBLIC_API_BASE_URL
+        sync: false
+
+      # The Vercel domain. A browser treats localhost and 127.0.0.1 as
+      # different origins, so production lists only the real one.
+      - key: CORS_ORIGINS
+        sync: false
+
+      - key: PEOPLE_PROVIDER
+        value: fixture

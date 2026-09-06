@@ -625,6 +625,11 @@ export interface components {
        * @default 0
        */
       shortlisted_count: number;
+      /**
+       * In Flight Count
+       * @default 0
+       */
+      in_flight_count: number;
       /** Description Raw */
       description_raw: string;
       /** Persona Name */
@@ -690,6 +695,11 @@ export interface components {
        * @default 0
        */
       shortlisted_count: number;
+      /**
+       * In Flight Count
+       * @default 0
+       */
+      in_flight_count: number;
     };
     /** JobUpdate */
     JobUpdate: {

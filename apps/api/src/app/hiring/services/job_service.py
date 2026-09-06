@@ -42,6 +42,9 @@ from hunar_sdk import Agent, AgentCreate, HunarClient, HunarError
 
 logger = structlog.get_logger(__name__)
 
+#: Statuses a call will never move out of.
+_TERMINAL_STATUS_VALUES = ("COMPLETED", "NOT_CONNECTED", "FAILED", "CANCELLED")
+
 __all__ = [
     "create_job",
     "delete_job",
@@ -252,6 +255,12 @@ async def list_jobs(session: AsyncSession) -> list[JobSummary]:
         .group_by(CallAttempt.job_id)
         .subquery()
     )
+    in_flight = (
+        select(CallAttempt.job_id, func.count(CallAttempt.id).label("n"))
+        .where(CallAttempt.status.notin_(_TERMINAL_STATUS_VALUES))
+        .group_by(CallAttempt.job_id)
+        .subquery()
+    )
 
     rows = await session.execute(
         select(
@@ -260,31 +269,41 @@ async def list_jobs(session: AsyncSession) -> list[JobSummary]:
             func.coalesce(calls.c.n, 0),
             func.coalesce(completed.c.n, 0),
             func.coalesce(shortlisted.c.n, 0),
+            func.coalesce(in_flight.c.n, 0),
         )
         .outerjoin(candidates, candidates.c.job_id == Job.id)
         .outerjoin(calls, calls.c.job_id == Job.id)
         .outerjoin(completed, completed.c.job_id == Job.id)
         .outerjoin(shortlisted, shortlisted.c.job_id == Job.id)
+        .outerjoin(in_flight, in_flight.c.job_id == Job.id)
         .where(Job.status != JobStatus.ARCHIVED.value)
         .order_by(Job.created_at.desc())
     )
 
+    counted = {
+        "candidate_count",
+        "call_count",
+        "completed_count",
+        "shortlisted_count",
+        "in_flight_count",
+    }
     return [
         JobSummary(
-            **JobSummary.model_validate(job).model_dump(
-                exclude={
-                    "candidate_count",
-                    "call_count",
-                    "completed_count",
-                    "shortlisted_count",
-                }
-            ),
+            **JobSummary.model_validate(job).model_dump(exclude=counted),
             candidate_count=candidate_count,
             call_count=call_count,
             completed_count=completed_count,
             shortlisted_count=shortlisted_count,
+            in_flight_count=in_flight_count,
         )
-        for job, candidate_count, call_count, completed_count, shortlisted_count in rows
+        for (
+            job,
+            candidate_count,
+            call_count,
+            completed_count,
+            shortlisted_count,
+            in_flight_count,
+        ) in rows
     ]
 
 
@@ -302,9 +321,21 @@ async def job_detail(session: AsyncSession, job: Job) -> JobDetail:
             select(func.count(Candidate.id))
             .where(Candidate.job_id == job.id, Candidate.decision == "SHORTLISTED")
             .scalar_subquery(),
+            select(func.count(CallAttempt.id))
+            .where(
+                CallAttempt.job_id == job.id,
+                CallAttempt.status.notin_(_TERMINAL_STATUS_VALUES),
+            )
+            .scalar_subquery(),
         )
     )
-    candidate_count, call_count, completed_count, shortlisted_count = counts.one()
+    (
+        candidate_count,
+        call_count,
+        completed_count,
+        shortlisted_count,
+        in_flight_count,
+    ) = counts.one()
 
     questions = _questions_to_inputs(job)
     preview = (
@@ -341,6 +372,7 @@ async def job_detail(session: AsyncSession, job: Job) -> JobDetail:
         call_count=call_count,
         completed_count=completed_count,
         shortlisted_count=shortlisted_count,
+        in_flight_count=in_flight_count,
     )
 
 

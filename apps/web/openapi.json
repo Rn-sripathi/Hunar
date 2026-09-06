@@ -1494,6 +1494,11 @@
             "title": "Shortlisted Count",
             "default": 0
           },
+          "in_flight_count": {
+            "type": "integer",
+            "title": "In Flight Count",
+            "default": 0
+          },
           "description_raw": {
             "type": "string",
             "title": "Description Raw"
@@ -1648,6 +1653,11 @@
           "shortlisted_count": {
             "type": "integer",
             "title": "Shortlisted Count",
+            "default": 0
+          },
+          "in_flight_count": {
+            "type": "integer",
+            "title": "In Flight Count",
             "default": 0
           }
         },
