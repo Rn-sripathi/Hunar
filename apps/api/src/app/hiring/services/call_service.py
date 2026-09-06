@@ -25,9 +25,10 @@ import secrets
 from datetime import UTC, datetime, timedelta
 
 import structlog
-from sqlalchemy import func, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
+from sqlalchemy.sql.elements import ColumnElement
 
 from app.core.config import Settings
 from app.core.models import CallAttempt
@@ -109,6 +110,26 @@ def mask_number(number: str) -> str:
 def _new_request_id() -> str:
     """Our idempotency handle, capped at Hunar's 64 characters."""
     return f"scr-{datetime.now(UTC).strftime('%Y%m%d')}-{secrets.token_hex(8)}"
+
+
+def _unsettled() -> ColumnElement[bool]:
+    """Calls that still have something to collect.
+
+    Two distinct cases, and missing the second one is easy:
+
+    * The call has not finished, so its status will change.
+    * The call **has** finished but carries no extracted result yet.
+      Hunar transcribes and extracts after hanging up, so a call reaches
+      COMPLETED before its answers exist. Treating terminal as finished
+      would stop polling exactly one beat before the useful part arrives,
+      and the dashboard would show a completed call with empty columns
+      forever.
+    """
+    terminal = [status.value for status in TERMINAL_STATUSES]
+    return or_(
+        CallAttempt.status.notin_(terminal),
+        and_(CallAttempt.status == "COMPLETED", CallAttempt.raw_result.is_(None)),
+    )
 
 
 def _as_aware(value: datetime | None) -> datetime | None:
@@ -360,11 +381,13 @@ async def reconcile_job(
     force: bool = False,
     min_interval: timedelta | None = None,
 ) -> int:
-    """Refresh non-terminal calls for a job from the upstream API.
+    """Refresh unsettled calls for a job from the upstream API.
 
     This is what makes live status work at all, since Hunar only pushes a
     webhook once a call has finished. It also recovers attempts whose
-    submission timed out, by matching on ``request_id`` while paging.
+    submission timed out, by matching on ``request_id`` while paging, and
+    collects the extracted answers, which land after the call has already
+    reached COMPLETED.
 
     Returns the number of attempts updated.
     """
@@ -373,14 +396,13 @@ async def reconcile_job(
 
     cutoff = datetime.now(UTC) - (min_interval or _SYNC_INTERVAL)
     horizon = datetime.now(UTC) - _MAX_RECONCILE_AGE
-    terminal = {status.value for status in TERMINAL_STATUSES}
 
     pending = list(
         (
             await session.execute(
                 select(CallAttempt).where(
                     CallAttempt.job_id == job.id,
-                    CallAttempt.status.notin_(terminal),
+                    _unsettled(),
                     CallAttempt.created_at >= horizon,
                 )
             )
@@ -433,10 +455,11 @@ async def reconcile_job(
     if updated:
         logger.info("hiring.reconciled", job_id=str(job.id), updated=updated)
 
+    # A role is only done once every call has both settled and delivered
+    # its answers. Marking it done while extraction is outstanding would
+    # stop the frontend polling before the results appeared.
     remaining = await session.scalar(
-        select(CallAttempt.id)
-        .where(CallAttempt.job_id == job.id, CallAttempt.status.notin_(terminal))
-        .limit(1)
+        select(CallAttempt.id).where(CallAttempt.job_id == job.id, _unsettled()).limit(1)
     )
     if remaining is None and job.status == JobStatus.CALLING.value:
         job.status = JobStatus.DONE.value
@@ -512,7 +535,15 @@ async def build_results(session: AsyncSession, job: Job) -> ResultsResponse:
         status = attempt.status if attempt else "NOT_STARTED"
         if status == "COMPLETED":
             completed += 1
-        if attempt is not None and status not in terminal:
+
+        # Keep the client polling while a call is running *or* while a
+        # finished call is still waiting on its extracted answers. Hunar
+        # transcribes after hanging up, so stopping at COMPLETED would
+        # leave the table permanently empty for the last few seconds of
+        # work that actually produce the columns.
+        if attempt is not None and (
+            status not in terminal or (status == "COMPLETED" and not attempt.raw_result)
+        ):
             in_progress = True
 
         rows.append(

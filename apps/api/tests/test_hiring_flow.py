@@ -320,6 +320,41 @@ class TestScreeningEndToEnd:
         assert second.json()["launched"] == 0
         assert second.json()["skipped"] == 1
 
+    async def test_keeps_polling_a_finished_call_until_its_answers_arrive(
+        self, client: httpx.AsyncClient, app: Any
+    ) -> None:
+        """A completed call with no result yet is not finished business.
+
+        Hunar transcribes and extracts *after* hanging up, so a call
+        reaches COMPLETED before its answers exist. Treating terminal as
+        done stopped the reconciler one beat before the useful part
+        arrived, and the dashboard showed a completed call with
+        permanently empty columns. Found by placing a real call.
+        """
+        from sqlalchemy import select
+
+        from app.core.models import CallAttempt
+
+        job = await create_job(client)
+        await add_candidate(client, job["id"], "Asha", "+919876543210")
+        await client.post(f"{API}/jobs/{job['id']}/calls/launch", json={})
+        await settle(client, job["id"])
+
+        # Simulate the real sequence: the call is COMPLETED and the result
+        # has not landed yet.
+        factory = app.state.session_factory
+        async with factory() as session:
+            attempt = (await session.execute(select(CallAttempt).limit(1))).scalar_one()
+            attempt.status = "COMPLETED"
+            attempt.raw_result = None
+            attempt.normalized_result = None
+            await session.commit()
+
+        results = (await client.get(f"{API}/jobs/{job['id']}/results")).json()
+        assert results["in_progress"] is True, (
+            "a completed call still awaiting its answers must keep the client polling"
+        )
+
     async def test_launching_with_no_candidates_is_not_an_error(
         self, client: httpx.AsyncClient
     ) -> None:
