@@ -1,6 +1,11 @@
 import { z } from "zod";
 
-import type { AnswerType, JobCreate, QuestionInput } from "@/lib/types";
+import type {
+  AnswerType,
+  JobCreate,
+  JobDraft,
+  QuestionInput,
+} from "@/lib/types";
 
 /**
  * Form shape and validation for creating a role.
@@ -193,6 +198,39 @@ export function toJobCreate(values: JobFormValues): JobCreate {
     persona_name: null,
     timezone: "Asia/Kolkata",
     questions,
+  };
+}
+
+/**
+ * Pour an extracted draft into the form.
+ *
+ * Every value stays editable. The draft is a starting point that saves
+ * retyping what the job description already said, not a decision.
+ */
+export function fromDraft(draft: JobDraft, jdText: string): JobFormValues {
+  const questions = (draft.questions ?? []).map((question) => ({
+    label: question.label,
+    text: question.text,
+    answer_type: question.answer_type,
+    enum_options_raw: (question.enum_options ?? []).join(", "),
+    // Scoring rules are left blank on purpose. How candidates get ranked
+    // is a judgement about this hire, not something to infer from prose.
+    rule_raw: "",
+    weight: question.weight,
+    is_knockout: question.is_knockout,
+  }));
+
+  return {
+    title: draft.title ?? "",
+    company_name: draft.company_name ?? "",
+    location: draft.location ?? "",
+    // The pasted text is kept as the description: the agent uses it to
+    // answer questions the candidate asks about the role, so discarding
+    // it after extraction would throw away the useful half.
+    description_raw: jdText.trim(),
+    language: draft.language ?? "ENGLISH",
+    voice_persona: draft.voice_persona ?? "NEHA",
+    questions: questions.length > 0 ? questions : [emptyQuestion()],
   };
 }
 

@@ -188,9 +188,7 @@ class ContactAllowlistEntry(UUIDMixin, TimestampMixin, Base):
     e164: Mapped[str] = mapped_column(String(20), unique=True, nullable=False)
     label: Mapped[str] = mapped_column(String(120), default="unlabelled")
     consent_source: Mapped[str] = mapped_column(String(64), default="env")
-    consented_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    consented_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
 class DoNotContact(Base):
@@ -206,9 +204,7 @@ class DoNotContact(Base):
     e164_sha256: Mapped[str] = mapped_column(String(64), primary_key=True)
     reason: Mapped[str | None] = mapped_column(Text, nullable=True)
     source: Mapped[str] = mapped_column(String(32), default="call")
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
 class OutreachCampaign(UUIDMixin, TimestampMixin, Base):
@@ -234,9 +230,7 @@ class OutreachCampaign(UUIDMixin, TimestampMixin, Base):
     field_spec: Mapped[list[dict[str, Any]]] = mapped_column(JSONVariant, default=list)
 
     status: Mapped[str] = mapped_column(String(16), default="DRAFT", index=True)
-    launched_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    launched_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     targets: Mapped[list[OutreachTarget]] = relationship(
         back_populates="campaign", cascade="all, delete-orphan"
@@ -252,9 +246,7 @@ class OutreachTarget(UUIDMixin, TimestampMixin, Base):
     """
 
     __tablename__ = "outreach_target"
-    __table_args__ = (
-        UniqueConstraint("campaign_id", "prospect_id", name="target_once"),
-    )
+    __table_args__ = (UniqueConstraint("campaign_id", "prospect_id", name="target_once"),)
 
     campaign_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("outreach_campaign.id", ondelete="CASCADE"), nullable=False, index=True
@@ -270,8 +262,6 @@ class OutreachTarget(UUIDMixin, TimestampMixin, Base):
         String(16), default=TargetStatus.PENDING.value, nullable=False, index=True
     )
     block_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
-    next_attempt_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    next_attempt_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     campaign: Mapped[OutreachCampaign] = relationship(back_populates="targets")

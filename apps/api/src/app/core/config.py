@@ -162,8 +162,12 @@ class Settings(BaseSettings):
     calling_timezone: str = "Asia/Kolkata"
 
     # ── LLM ──────────────────────────────────────────────────
-    anthropic_api_key: str = ""
-    llm_model: str = "claude-sonnet-5"
+    openai_api_key: str = ""
+
+    #: Must support structured outputs, since the extractor asks for a
+    #: schema-validated object rather than parsing prose. Configurable
+    #: because which models an account can reach varies.
+    llm_model: str = "gpt-4o"
 
     # ── access ───────────────────────────────────────────────
     demo_password: str = ""

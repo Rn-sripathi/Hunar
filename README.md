@@ -21,6 +21,9 @@ Built for the Hunar.ai assignment.
 
 ## What works today
 
+- **Paste a job description and the whole form fills itself in**, including
+  the screening questions. Falls back to keyword extraction when no model key
+  is configured, and always says which of the two produced the fields.
 - Create a role from a job description and a list of screening questions.
 - **See the exact call script before anyone is phoned.** The generated agent
   prompt and extraction schema are shown beside the form as you type.

@@ -7,7 +7,7 @@ import uuid
 from fastapi import APIRouter, status
 from pydantic import BaseModel, Field
 
-from app.deps import DbSession
+from app.deps import DbSession, SettingsDep
 from app.hiring.schemas import (
     AgentPreview,
     JobCreate,
@@ -17,9 +17,32 @@ from app.hiring.schemas import (
     QuestionInput,
 )
 from app.hiring.services import job_service
+from app.hiring.services.jd_extractor import JobDraft, extract_job_draft
 from app.hiring.services.prompt_builder import build_preview
 
 router = APIRouter(prefix="/jobs")
+
+
+class ExtractRequest(BaseModel):
+    """A pasted job description, to be turned into a filled-in form."""
+
+    jd_text: str = Field(min_length=1, max_length=20_000)
+
+
+@router.post("/extract", response_model=JobDraft)
+async def extract_from_description(payload: ExtractRequest, settings: SettingsDep) -> JobDraft:
+    """Read a job description and fill in the whole create-role form.
+
+    The recruiter already has the description. Making them retype the
+    title, the city and five questions it already contains is work the
+    text can do itself.
+
+    Saves nothing. The result is a draft the recruiter reviews and edits,
+    and `source` says whether a model read the description or whether it
+    was filled in by keyword matching, so nobody has to guess how much to
+    trust it.
+    """
+    return await extract_job_draft(payload.jd_text, settings)
 
 
 class PreviewRequest(BaseModel):

@@ -64,6 +64,35 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/hiring/jobs/extract": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Extract From Description
+     * @description Read a job description and fill in the whole create-role form.
+     *
+     *     The recruiter already has the description. Making them retype the
+     *     title, the city and five questions it already contains is work the
+     *     text can do itself.
+     *
+     *     Saves nothing. The result is a draft the recruiter reviews and edits,
+     *     and `source` says whether a model read the description or whether it
+     *     was filled in by keyword matching, so nobody has to guess how much to
+     *     trust it.
+     */
+    post: operations["extract_from_description_api_v1_hiring_jobs_extract_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/hiring/jobs/preview": {
     parameters: {
       query?: never;
@@ -501,6 +530,50 @@ export interface components {
       detail?: string | null;
     };
     /**
+     * DraftQuestion
+     * @description One screening question the model proposed.
+     */
+    DraftQuestion: {
+      /**
+       * Label
+       * @description Short column heading, two or three words
+       */
+      label: string;
+      /**
+       * Text
+       * @description The question as the agent should speak it
+       */
+      text: string;
+      /**
+       * Answer Type
+       * @enum {string}
+       */
+      answer_type: "STRING" | "NUMBER" | "BOOLEAN" | "ENUM";
+      /**
+       * Enum Options
+       * @description Allowed answers. Only for ENUM, otherwise empty.
+       */
+      enum_options?: string[];
+      /**
+       * Weight
+       * @description Importance from 0 to 5
+       */
+      weight: number;
+      /**
+       * Is Knockout
+       * @description True only for genuine hard requirements stated in the description
+       */
+      is_knockout: boolean;
+    };
+    /**
+     * ExtractRequest
+     * @description A pasted job description, to be turned into a filled-in form.
+     */
+    ExtractRequest: {
+      /** Jd Text */
+      jd_text: string;
+    };
+    /**
      * FieldSpec
      * @description One column of the results table, derived from a question.
      *
@@ -645,6 +718,32 @@ export interface components {
       /** Field Spec */
       field_spec?: components["schemas"]["FieldSpec"][];
       preview?: components["schemas"]["AgentPreview"] | null;
+    };
+    /**
+     * JobDraft
+     * @description Everything the create-role form needs, derived from the description.
+     */
+    JobDraft: {
+      /** Title */
+      title: string;
+      /** Company Name */
+      company_name: string;
+      /** Location */
+      location: string;
+      /** Language */
+      language: string;
+      /** Voice Persona */
+      voice_persona: string;
+      /** Questions */
+      questions: components["schemas"]["DraftQuestion"][];
+      /**
+       * Source
+       * @default heuristic
+       * @enum {string}
+       */
+      source: "model" | "heuristic";
+      /** Note */
+      note?: string | null;
     };
     /**
      * JobStatus
@@ -1028,6 +1127,39 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["MetaResponse"];
+        };
+      };
+    };
+  };
+  extract_from_description_api_v1_hiring_jobs_extract_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ExtractRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["JobDraft"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
         };
       };
     };

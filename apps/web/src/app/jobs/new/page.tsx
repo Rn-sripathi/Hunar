@@ -10,6 +10,7 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { AgentPreviewPanel } from "@/components/agent-preview";
+import { JdPasteBox } from "@/components/jd-paste-box";
 import { QuestionEditor } from "@/components/question-editor";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -28,6 +29,7 @@ import {
   LANGUAGES,
   VOICES,
   defaultJobValues,
+  fromDraft,
   jobFormSchema,
   sampleJobValues,
   toJobCreate,
@@ -146,6 +148,15 @@ export default function NewJobPage() {
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]">
         <div className="space-y-6">
+          <JdPasteBox
+            onExtracted={(draft, jdText) => {
+              // Replaces the whole form rather than merging. A partial
+              // merge would leave fields from a previous description
+              // sitting beside the new one, which is worse than either.
+              form.reset(fromDraft(draft, jdText));
+            }}
+          />
+
           <Card className="gap-0 p-5">
             <h2 className="text-[15px] font-semibold">The role</h2>
             <p className="text-muted-foreground mt-0.5 text-sm">

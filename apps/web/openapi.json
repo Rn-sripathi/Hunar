@@ -72,6 +72,48 @@
         }
       }
     },
+    "/api/v1/hiring/jobs/extract": {
+      "post": {
+        "tags": [
+          "hiring"
+        ],
+        "summary": "Extract From Description",
+        "description": "Read a job description and fill in the whole create-role form.\n\nThe recruiter already has the description. Making them retype the\ntitle, the city and five questions it already contains is work the\ntext can do itself.\n\nSaves nothing. The result is a draft the recruiter reviews and edits,\nand `source` says whether a model read the description or whether it\nwas filled in by keyword matching, so nobody has to guess how much to\ntrust it.",
+        "operationId": "extract_from_description_api_v1_hiring_jobs_extract_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExtractRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobDraft"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/hiring/jobs/preview": {
       "post": {
         "tags": [
@@ -1266,6 +1308,74 @@
         ],
         "title": "DependencyState"
       },
+      "DraftQuestion": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label",
+            "description": "Short column heading, two or three words"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text",
+            "description": "The question as the agent should speak it"
+          },
+          "answer_type": {
+            "type": "string",
+            "enum": [
+              "STRING",
+              "NUMBER",
+              "BOOLEAN",
+              "ENUM"
+            ],
+            "title": "Answer Type"
+          },
+          "enum_options": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Enum Options",
+            "description": "Allowed answers. Only for ENUM, otherwise empty."
+          },
+          "weight": {
+            "type": "number",
+            "title": "Weight",
+            "description": "Importance from 0 to 5"
+          },
+          "is_knockout": {
+            "type": "boolean",
+            "title": "Is Knockout",
+            "description": "True only for genuine hard requirements stated in the description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "text",
+          "answer_type",
+          "weight",
+          "is_knockout"
+        ],
+        "title": "DraftQuestion",
+        "description": "One screening question the model proposed."
+      },
+      "ExtractRequest": {
+        "properties": {
+          "jd_text": {
+            "type": "string",
+            "maxLength": 20000,
+            "minLength": 1,
+            "title": "Jd Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "jd_text"
+        ],
+        "title": "ExtractRequest",
+        "description": "A pasted job description, to be turned into a filled-in form."
+      },
       "FieldSpec": {
         "properties": {
           "key": {
@@ -1580,6 +1690,68 @@
           "timezone"
         ],
         "title": "JobDetail"
+      },
+      "JobDraft": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "company_name": {
+            "type": "string",
+            "title": "Company Name"
+          },
+          "location": {
+            "type": "string",
+            "title": "Location"
+          },
+          "language": {
+            "type": "string",
+            "title": "Language"
+          },
+          "voice_persona": {
+            "type": "string",
+            "title": "Voice Persona"
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/DraftQuestion"
+            },
+            "type": "array",
+            "title": "Questions"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "model",
+              "heuristic"
+            ],
+            "title": "Source",
+            "default": "heuristic"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "company_name",
+          "location",
+          "language",
+          "voice_persona",
+          "questions"
+        ],
+        "title": "JobDraft",
+        "description": "Everything the create-role form needs, derived from the description."
       },
       "JobStatus": {
         "type": "string",

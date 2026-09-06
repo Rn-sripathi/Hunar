@@ -18,6 +18,7 @@ import type {
   CandidateOut,
   JobCreate,
   JobDetail,
+  JobDraft,
   JobSummary,
   JobUpdate,
   LaunchReport,
@@ -162,6 +163,19 @@ export const api = {
       }),
     archive: (jobId: string) =>
       request<void>(`/hiring/jobs/${jobId}`, { method: "DELETE" }),
+
+    /**
+     * Read a pasted job description and fill in the whole form.
+     *
+     * Saves nothing. The response carries `source`, saying whether a
+     * model read the description or whether it was filled in by keyword
+     * matching, so the UI can tell the recruiter how much to trust it.
+     */
+    extract: (jdText: string) =>
+      request<JobDraft>("/hiring/jobs/extract", {
+        method: "POST",
+        ...json({ jd_text: jdText }),
+      }),
 
     /**
      * Render the agent script for a draft role without saving it.

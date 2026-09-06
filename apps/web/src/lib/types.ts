@@ -21,6 +21,8 @@ export type QuestionInput = Schemas["QuestionInput"];
 export type QuestionOut = Schemas["QuestionOut"];
 export type FieldSpec = Schemas["FieldSpec"];
 export type AgentPreview = Schemas["AgentPreview"];
+export type JobDraft = Schemas["JobDraft"];
+export type DraftQuestion = Schemas["DraftQuestion"];
 
 export type CandidateOut = Schemas["CandidateOut"];
 export type CandidateCreate = Schemas["CandidateCreate"];

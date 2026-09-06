@@ -92,7 +92,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     for secret in (
         settings.hunar_api_key,
         settings.pdl_api_key,
-        settings.anthropic_api_key,
+        settings.openai_api_key,
         settings.demo_password,
         settings.session_secret,
         settings.database_url,

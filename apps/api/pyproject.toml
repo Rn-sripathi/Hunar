@@ -20,7 +20,7 @@ dependencies = [
     "phonenumbers>=8.13",
     "python-multipart>=0.0.20",
     "itsdangerous>=2.2",
-    "anthropic>=0.40",
+    "openai>=3.8.0",
 ]
 
 [build-system]
