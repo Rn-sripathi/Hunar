@@ -43,9 +43,11 @@ import { api, queryKeys } from "@/lib/api";
 import type {
   FieldSpec,
   ResultRow,
+  ResultsResponse,
   ScoreBreakdown,
   ScoreContribution,
 } from "@/lib/types";
+import { useLivePoll } from "@/lib/use-live-poll";
 import { cn } from "@/lib/utils";
 
 type Filter = "all" | "interested" | "shortlisted" | "setaside";
@@ -241,14 +243,21 @@ export function ResultsPanel({ jobId }: { jobId: string }) {
   const [filter, setFilter] = useState<Filter>("all");
   const [selected, setSelected] = useState<ResultRow | null>(null);
 
+  // Poll only while something is still moving, then stop. The voice API
+  // pushes a webhook only once a call has finished, so in-flight progress
+  // and the extracted answers exist solely because of this.
+  const poll = useLivePoll<ResultsResponse>((data) =>
+    Boolean(data?.in_progress),
+  );
+
   const results = useQuery({
     queryKey: queryKeys.results(jobId),
     queryFn: () => api.calls.results(jobId),
-    // Poll only while something is still moving, then stop. The voice API
-    // pushes a webhook only once a call has finished, so in-flight
-    // progress exists solely because of this.
-    refetchInterval: (query) => (query.state.data?.in_progress ? 3000 : false),
-    refetchIntervalInBackground: false,
+    refetchInterval: poll.refetchInterval,
+    // Keep updating even when the tab is in the background. A recruiter
+    // starts a round of calls and switches away; coming back to a stale
+    // table is the whole complaint this is meant to fix.
+    refetchIntervalInBackground: true,
   });
 
   const decide = useMutation({
@@ -414,7 +423,7 @@ export function ResultsPanel({ jobId }: { jobId: string }) {
           </Tabs>
 
           <div className="flex items-center gap-2">
-            {results.data?.in_progress && (
+            {results.data?.in_progress && !poll.gaveUp && (
               <span className="text-muted-foreground flex items-center gap-1.5 text-xs">
                 <span className="relative flex size-1.5">
                   <span className="absolute inline-flex size-full animate-ping rounded-full bg-blue-500 opacity-70" />
@@ -422,6 +431,21 @@ export function ResultsPanel({ jobId }: { jobId: string }) {
                 </span>
                 updating live
               </span>
+            )}
+
+            {/* Say plainly that the table stopped updating. Silently
+                showing stale rows as though they were current is the one
+                outcome worse than stopping. */}
+            {poll.gaveUp && (
+              <button
+                type="button"
+                onClick={poll.resume}
+                className="text-amber-700 underline-offset-2 hover:underline dark:text-amber-400"
+              >
+                <span className="text-xs">
+                  Stopped updating. Keep watching?
+                </span>
+              </button>
             )}
             <Button
               type="button"

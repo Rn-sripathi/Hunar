@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, MapPin, Mic, Users } from "lucide-react";
 import Link from "next/link";
-import { use } from "react";
+import { use, useState } from "react";
 
 import { AgentPreviewPanel } from "@/components/agent-preview";
 import { CandidatesPanel } from "@/components/candidates-panel";
@@ -15,6 +15,8 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { api, ApiError, queryKeys } from "@/lib/api";
+import type { JobDetail } from "@/lib/types";
+import { useLivePoll } from "@/lib/use-live-poll";
 import { cn } from "@/lib/utils";
 
 const STATUS_TONE: Record<string, string> = {
@@ -38,10 +40,24 @@ export default function JobDetailPage({
 }) {
   const { jobId } = use(params);
 
+  // The header counts have to move too. A role stays CALLING until every
+  // call has settled *and* delivered its answers, so that status is the
+  // honest signal for "something is still happening here".
+  const poll = useLivePoll<JobDetail>((data) => data?.status === "CALLING");
+
   const job = useQuery({
     queryKey: queryKeys.job(jobId),
     queryFn: () => api.jobs.get(jobId),
+    refetchInterval: poll.refetchInterval,
+    refetchIntervalInBackground: true,
   });
+
+  // Land on Results once calling has started. Launching happens on the
+  // Candidates tab, and leaving the user there watching a static list
+  // while the answers arrive one tab over is the whole problem.
+  const [tab, setTab] = useState<string | null>(null);
+  const started = job.data ? job.data.call_count > 0 : false;
+  const activeTab = tab ?? (started ? "results" : "candidates");
 
   if (job.isPending) {
     return (
@@ -142,9 +158,7 @@ export default function JobDetailPage({
         </div>
       </div>
 
-      <Tabs
-        defaultValue={detail.candidate_count > 0 ? "results" : "candidates"}
-      >
+      <Tabs value={activeTab} onValueChange={setTab}>
         <TabsList>
           <TabsTrigger value="candidates">Candidates</TabsTrigger>
           <TabsTrigger value="results">Results</TabsTrigger>
@@ -152,7 +166,7 @@ export default function JobDetailPage({
         </TabsList>
 
         <TabsContent value="candidates" className="mt-5">
-          <CandidatesPanel jobId={jobId} />
+          <CandidatesPanel jobId={jobId} onLaunched={() => setTab("results")} />
         </TabsContent>
 
         <TabsContent value="results" className="mt-5">

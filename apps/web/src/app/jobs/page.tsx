@@ -13,6 +13,7 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api, ApiError, queryKeys } from "@/lib/api";
 import type { JobSummary } from "@/lib/types";
+import { useLivePoll } from "@/lib/use-live-poll";
 import { cn } from "@/lib/utils";
 
 const STATUS_TONE: Record<string, string> = {
@@ -118,6 +119,12 @@ function LoadingGrid() {
 }
 
 export default function JobsPage() {
+  // Keep the cards moving while any role is mid-round, so progress and
+  // shortlist counts update without the page being reloaded.
+  const poll = useLivePoll<JobSummary[]>((data) =>
+    (data ?? []).some((job) => job.status === "CALLING"),
+  );
+
   const {
     data: jobs,
     isPending,
@@ -125,6 +132,8 @@ export default function JobsPage() {
   } = useQuery({
     queryKey: queryKeys.jobs,
     queryFn: api.jobs.list,
+    refetchInterval: poll.refetchInterval,
+    refetchIntervalInBackground: true,
   });
 
   return (

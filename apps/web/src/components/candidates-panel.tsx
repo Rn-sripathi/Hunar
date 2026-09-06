@@ -37,7 +37,14 @@ import { api, ApiError, queryKeys } from "@/lib/api";
  * real phone calls about to be placed. This is the one irreversible
  * action in the product: once a call goes out, a person's phone rings.
  */
-export function CandidatesPanel({ jobId }: { jobId: string }) {
+export function CandidatesPanel({
+  jobId,
+  onLaunched,
+}: {
+  jobId: string;
+  /** Called once calls are away, so the view can move to the results. */
+  onLaunched?: () => void;
+}) {
   const queryClient = useQueryClient();
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -123,6 +130,11 @@ export function CandidatesPanel({ jobId }: { jobId: string }) {
         });
         return;
       }
+      // Move to the results before the first call even connects. Watching
+      // a static candidate list while the answers land on another tab is
+      // what makes the app feel like it is not updating.
+      onLaunched?.();
+
       const blocked = report.blocked ?? [];
       toast.success(
         `Calling ${report.launched} ${report.launched === 1 ? "candidate" : "candidates"}`,
