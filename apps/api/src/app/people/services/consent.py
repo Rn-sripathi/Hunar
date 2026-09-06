@@ -30,6 +30,7 @@ can still be draining at 19:05 and calling hours are not advisory.
 from __future__ import annotations
 
 import hashlib
+import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from zoneinfo import ZoneInfo
@@ -67,7 +68,7 @@ class ConsentDecision:
     """Whether one prospect may be called, and why not if not."""
 
     allowed: bool
-    allowlist_id: object | None = None
+    allowlist_id: uuid.UUID | None = None
     allowlist_label: str = ""
     #: Written for the recruiter, not for a log. It appears in the table
     #: next to the person it refers to.

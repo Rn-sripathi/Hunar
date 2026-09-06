@@ -30,6 +30,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql.elements import ColumnElement
 
+from app.core.answers import mask_number
 from app.core.config import Settings
 from app.core.models import CallAttempt
 from app.hiring.models import Candidate, CandidateDecision, Job, JobStatus
@@ -93,18 +94,6 @@ _ALREADY_DIALLED = (
 #: that has not moved in hours is stuck, not in flight, and polling it
 #: forever would waste quota indefinitely.
 _MAX_RECONCILE_AGE = timedelta(hours=6)
-
-
-def mask_number(number: str) -> str:
-    """Mask a phone number for display, keeping the last four digits.
-
-    Recruiters need enough to recognise a row; nobody needs the whole
-    number rendered in a browser or copied into a screenshot.
-    """
-    digits = "".join(character for character in number if character.isdigit())
-    if len(digits) <= 4:
-        return "•" * len(digits)
-    return f"{number[:3]}•••••{digits[-4:]}"
 
 
 def _new_request_id() -> str:

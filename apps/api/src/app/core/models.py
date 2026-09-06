@@ -94,7 +94,7 @@ class CallAttempt(UUIDMixin, TimestampMixin, Base):
     __tablename__ = "call_attempt"
     __table_args__ = (
         CheckConstraint(
-            "candidate_id IS NOT NULL",
+            "(candidate_id IS NOT NULL) <> (outreach_target_id IS NOT NULL)",
             name="one_subject",
         ),
         Index("ix_call_attempt_job_status", "job_id", "status"),
@@ -102,14 +102,22 @@ class CallAttempt(UUIDMixin, TimestampMixin, Base):
     )
 
     # ── subject ──────────────────────────────────────────────
-    # Nullable in anticipation of the sourcing app, whose outreach targets
-    # will attach through a second nullable key. The check constraint is
-    # widened to an exclusive-or in that migration.
+    # A call belongs to exactly one of these, never both and never
+    # neither. Two nullable keys with an exclusive-or constraint say that
+    # in a way Postgres can enforce; a polymorphic subject pair would
+    # leave it to be enforced by whichever service happened to remember.
     job_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("job.id", ondelete="CASCADE"), nullable=True, index=True
     )
     candidate_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("candidate.id", ondelete="CASCADE"), nullable=True, index=True
+    )
+
+    campaign_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("outreach_campaign.id", ondelete="CASCADE"), nullable=True, index=True
+    )
+    outreach_target_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("outreach_target.id", ondelete="CASCADE"), nullable=True, index=True
     )
 
     # ── correlation ──────────────────────────────────────────

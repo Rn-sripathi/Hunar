@@ -29,6 +29,7 @@ from app.core import models as _core_models  # noqa: F401
 from app.core.config import get_settings
 from app.db import Base, direct_endpoint, normalise_database_url
 from app.hiring import models as _hiring_models  # noqa: F401
+from app.people import models as _people_models  # noqa: F401
 
 config = context.config
 

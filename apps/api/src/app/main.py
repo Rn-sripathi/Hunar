@@ -35,6 +35,7 @@ from app.core.logging import bind_request_id, configure_logging, register_secret
 from app.db import build_engine, create_session_factory
 from app.deps import build_hunar_client
 from app.hiring.routers import router as hiring_router
+from app.people.routers import router as people_router
 from app.routers import health
 from app.webhooks.router import router as webhooks_router
 
@@ -43,6 +44,7 @@ from app.webhooks.router import router as webhooks_router
 # relationships declared by string name.
 from app.core import models as _core_models  # noqa: F401  isort:skip
 from app.hiring import models as _hiring_models  # noqa: F401  isort:skip
+from app.people import models as _people_models  # noqa: F401  isort:skip
 
 logger = structlog.get_logger(__name__)
 
@@ -156,6 +158,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app.include_router(health.router)
     app.include_router(hiring_router, prefix=settings.api_prefix)
+    app.include_router(people_router, prefix=settings.api_prefix)
 
     # Deliberately outside the API prefix and outside CORS. Hunar is not a
     # browser, the URL is baked into every call's callback config, and

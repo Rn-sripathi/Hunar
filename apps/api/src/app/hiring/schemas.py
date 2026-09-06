@@ -16,7 +16,8 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from app.hiring.models import AnswerType, CandidateDecision, JobStatus
+from app.core.answers import AnswerType, FieldSpec
+from app.hiring.models import CandidateDecision, JobStatus
 from hunar_sdk.models import normalize_e164
 
 __all__ = [
@@ -144,23 +145,6 @@ class JobUpdate(BaseModel):
     voice_persona: str | None = None
     persona_name: str | None = Field(default=None, max_length=64)
     questions: list[QuestionInput] | None = Field(default=None, min_length=1, max_length=15)
-
-
-class FieldSpec(BaseModel):
-    """One column of the results table, derived from a question.
-
-    Returned alongside the rows so the frontend can build a table for a
-    schema it has never seen. ``system`` marks the fields every job gets
-    regardless of what the recruiter asked.
-    """
-
-    key: str
-    label: str
-    answer_type: AnswerType
-    enum_options: list[str] | None = None
-    weight: float = 0.0
-    is_knockout: bool = False
-    system: bool = False
 
 
 class JobSummary(_Out):

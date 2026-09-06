@@ -37,6 +37,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.core.answers import AnswerType
 from app.core.models import CallAttempt, TimestampMixin, UUIDMixin
 from app.db import Base, JSONVariant
 
@@ -60,20 +61,6 @@ class JobStatus(StrEnum):
     CALLING = "CALLING"
     DONE = "DONE"
     ARCHIVED = "ARCHIVED"
-
-
-class AnswerType(StrEnum):
-    """How an answer is coerced, rendered and scored.
-
-    Hunar returns every value as a string, so this is our declaration of
-    what the string is meant to represent. It drives the normaliser, the
-    column renderer and the scoring rules from one place.
-    """
-
-    BOOLEAN = "BOOLEAN"
-    NUMBER = "NUMBER"
-    STRING = "STRING"
-    ENUM = "ENUM"
 
 
 class CandidateDecision(StrEnum):
