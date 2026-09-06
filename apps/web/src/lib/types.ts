@@ -34,6 +34,22 @@ export type LaunchReport = Schemas["LaunchReport"];
 export type ResultRow = Schemas["ResultRow"];
 export type ResultsResponse = Schemas["ResultsResponse"];
 
+// ── sourcing ─────────────────────────────────────────────────
+export type SearchFilters = Schemas["SearchFilters"];
+export type SearchRequest = Schemas["SearchRequest"];
+export type SearchResponse = Schemas["SearchResponse"];
+export type ProspectOut = Schemas["ProspectOut"];
+export type ExtractionResult = Schemas["ExtractionResult"];
+export type CallingPolicyOut = Schemas["CallingPolicyOut"];
+export type AllowlistEntryOut = Schemas["AllowlistEntryOut"];
+
+export type CampaignCreate = Schemas["CampaignCreate"];
+export type CampaignSummary = Schemas["CampaignSummary"];
+export type CampaignDetail = Schemas["CampaignDetail"];
+export type TargetOut = Schemas["TargetOut"];
+export type TargetStatus = Schemas["TargetStatus"];
+export type LaunchOutreachReport = Schemas["LaunchOutreachReport"];
+
 export type MetaResponse = Schemas["MetaResponse"];
 export type ReadinessResponse = Schemas["ReadinessResponse"];
 

@@ -244,6 +244,10 @@ async def launch_campaign(
     launched: list[OutreachTarget] = []
     blocked: list[dict[str, str]] = []
     deferred = 0
+    #: Submissions we never got an answer for. They may be ringing right
+    #: now, so the campaign has to count as started even though none of
+    #: them is confirmed launched.
+    unresolved = 0
 
     for target, prospect, entry in rows:
         if target.id in already_called:
@@ -312,6 +316,7 @@ async def launch_campaign(
             attempt.submit_state = SubmitState.UNKNOWN.value
             attempt.error_detail = exc.message
             target.status = TargetStatus.CALLING.value
+            unresolved += 1
             logger.warning("people.call_submit_unknown", target_id=str(target.id))
             continue
         except HunarError as exc:
@@ -332,7 +337,10 @@ async def launch_campaign(
         target.block_reason = None
         launched.append(target)
 
-    if launched:
+    # A submission that timed out may well be ringing, so it starts the
+    # campaign too. Leaving it DRAFT while its targets read CALLING would
+    # be a lie the reconciler then has to argue with.
+    if launched or unresolved:
         campaign.status = "CALLING"
         if campaign.launched_at is None:
             campaign.launched_at = datetime.now(UTC)
@@ -344,6 +352,7 @@ async def launch_campaign(
         launched=len(launched),
         blocked=len(blocked),
         deferred=deferred,
+        unresolved=unresolved,
     )
 
     detail = await campaign_detail(session, campaign)

@@ -10,7 +10,13 @@ import { DemoBanner } from "@/components/demo-banner";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-const NAV = [{ href: "/jobs", label: "Roles" }];
+// Two applications, one shell. They share the voice infrastructure, the
+// database and this frame; what differs is whether the person on the
+// other end applied for the job or was found without asking.
+const NAV = [
+  { href: "/jobs", label: "Screening" },
+  { href: "/sourcing", label: "Sourcing" },
+];
 
 function ThemeToggle() {
   const { setTheme, resolvedTheme } = useTheme();
@@ -53,7 +59,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <Headphones className="size-4" />
             </span>
             <span className="text-[15px] leading-none font-semibold tracking-tight">
-              Screening Console
+              Hunar Recruiting
             </span>
           </Link>
 
@@ -93,8 +99,11 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <footer className="text-muted-foreground border-t px-4 py-4 text-xs sm:px-6">
         <div className="mx-auto flex w-full max-w-[1400px] flex-wrap items-center justify-between gap-2">
-          <span>AI voice screening for frontline hiring.</span>
-          <span>Calls are placed only to numbers loaded for a role.</span>
+          <span>
+            AI voice agents for screening applicants and reaching people who
+            never applied.
+          </span>
+          <span>Outbound calls go only to consented numbers.</span>
         </div>
       </footer>
     </div>

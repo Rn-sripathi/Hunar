@@ -13,18 +13,27 @@
 
 import type {
   CallAttemptOut,
+  CallingPolicyOut,
+  CampaignCreate,
+  CampaignDetail,
+  CampaignSummary,
   CandidateCreate,
   CandidateImportReport,
   CandidateOut,
+  ExtractionResult,
   JobCreate,
   JobDetail,
   JobDraft,
   JobSummary,
   JobUpdate,
+  LaunchOutreachReport,
   LaunchReport,
   LaunchRequest,
   MetaResponse,
+  ProspectOut,
   ResultsResponse,
+  SearchFilters,
+  SearchResponse,
 } from "@/lib/types";
 
 const BASE_URL = (
@@ -262,6 +271,86 @@ export const api = {
     results: (jobId: string) =>
       request<ResultsResponse>(`/hiring/jobs/${jobId}/results`),
   },
+
+  people: {
+    /**
+     * What this deployment is allowed to do, in its own words.
+     *
+     * Fetched by the search screen so the calling policy is visible in
+     * the product rather than only in a README. A recruiter looking at
+     * people the app will not call deserves the reason on the same page.
+     */
+    policy: () => request<CallingPolicyOut>("/people/policy"),
+
+    /**
+     * Read a job description into search filters.
+     *
+     * Costs nothing and saves nothing, which is the whole point of
+     * separating it from the search: the filters can be corrected before
+     * a provider credit is spent on them.
+     */
+    extractFilters: (jdText: string) =>
+      request<ExtractionResult>("/people/extract-filters", {
+        method: "POST",
+        ...json({ jd_text: jdText }),
+      }),
+
+    /**
+     * Record that a sourced person is reachable on a consented number.
+     *
+     * This does not grant permission. The set of dialable numbers comes
+     * from the environment and the product cannot add to it. This only
+     * says which sourced person is reachable on one of them, which is
+     * how consent actually arrives: through a reply or a referral, never
+     * from the fact that someone was findable.
+     */
+    linkConsent: (prospectId: string, allowlistId: string) =>
+      request<ProspectOut>(`/people/prospects/${prospectId}/consent`, {
+        method: "POST",
+        ...json({ allowlist_id: allowlistId }),
+      }),
+
+    unlinkConsent: (prospectId: string) =>
+      request<ProspectOut>(`/people/prospects/${prospectId}/consent`, {
+        method: "DELETE",
+      }),
+
+    /** Run the search. Pass `filters` to search exactly what is shown. */
+    search: (payload: {
+      jd_text: string;
+      filters?: SearchFilters | null;
+      limit?: number;
+    }) =>
+      request<SearchResponse>("/people/search", {
+        method: "POST",
+        ...json({ limit: 25, filters: null, ...payload }),
+      }),
+  },
+
+  campaigns: {
+    list: () => request<CampaignSummary[]>("/campaigns"),
+    get: (campaignId: string) =>
+      request<CampaignDetail>(`/campaigns/${campaignId}`),
+    create: (payload: CampaignCreate) =>
+      request<CampaignDetail>("/campaigns", {
+        method: "POST",
+        ...json(payload),
+      }),
+
+    /**
+     * Place the calls.
+     *
+     * Every target is re-checked against the consent gate server-side
+     * before it is dialled, so a campaign assembled before the calling
+     * window closed will defer rather than ring someone at midnight.
+     */
+    launch: (campaignId: string) =>
+      request<LaunchOutreachReport>(`/campaigns/${campaignId}/launch`, {
+        method: "POST",
+      }),
+    remove: (campaignId: string) =>
+      request<void>(`/campaigns/${campaignId}`, { method: "DELETE" }),
+  },
 };
 
 /** Query keys, centralised so invalidation cannot go out of step. */
@@ -272,4 +361,8 @@ export const queryKeys = {
   candidates: (jobId: string) => ["jobs", jobId, "candidates"] as const,
   calls: (jobId: string) => ["jobs", jobId, "calls"] as const,
   results: (jobId: string) => ["jobs", jobId, "results"] as const,
+
+  policy: ["people", "policy"] as const,
+  campaigns: ["campaigns"] as const,
+  campaign: (campaignId: string) => ["campaigns", campaignId] as const,
 };

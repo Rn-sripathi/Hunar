@@ -27,6 +27,7 @@ from typing import Any
 import structlog
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.exc import SQLAlchemyError
 
 from app import __version__
 from app.core.config import Settings, get_settings
@@ -36,6 +37,7 @@ from app.db import build_engine, create_session_factory
 from app.deps import build_hunar_client
 from app.hiring.routers import router as hiring_router
 from app.people.routers import router as people_router
+from app.people.services.consent import seed_allowlist
 from app.routers import health
 from app.webhooks.router import router as webhooks_router
 
@@ -63,6 +65,22 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.engine = engine
     app.state.session_factory = create_session_factory(engine)
     app.state.hunar_client = build_hunar_client(settings)
+
+    # The consent allowlist is the outbound calling gate, and it lives in
+    # the environment rather than the product. Loading it at startup means
+    # a deployment's calling permission is decided before it serves its
+    # first request, and cannot be edited from inside the running app.
+    if settings.allowlist:
+        try:
+            async with app.state.session_factory() as session:
+                added = await seed_allowlist(session, settings)
+                await session.commit()
+            logger.info("app.allowlist_loaded", added=added)
+        except SQLAlchemyError:
+            # A database that is not reachable yet must not stop the
+            # service booting; the health endpoint reports it properly and
+            # the seed can be re-run from the API.
+            logger.warning("app.allowlist_seed_deferred", exc_info=True)
 
     logger.info(
         "app.started",

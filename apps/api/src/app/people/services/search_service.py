@@ -43,7 +43,7 @@ from app.people.services.extraction import extract_filters
 
 logger = structlog.get_logger(__name__)
 
-__all__ = ["run_search", "score_prospect"]
+__all__ = ["prospect_out", "run_search", "score_prospect"]
 
 #: How long a sourced record is kept. These are people who never asked to
 #: be in our database, so the default is short and the expiry is written
@@ -133,26 +133,37 @@ def score_prospect(
     if filters.seniorities:
         available += 10
         level = (prospect.seniority or "").lower()
+        wanted_indexes = [
+            _SENIORITY_ORDER.index(s) for s in filters.seniorities if s in _SENIORITY_ORDER
+        ]
+
         if level in {s.lower() for s in filters.seniorities}:
             earned += 10
             reasons.append({"label": "Seniority", "detail": level, "points": 10})
-        elif level in _SENIORITY_ORDER and filters.seniorities:
+        elif (
+            level in _SENIORITY_ORDER
+            and wanted_indexes
+            and min(abs(_SENIORITY_ORDER.index(level) - i) for i in wanted_indexes) == 1
+        ):
             # One level either side is a near miss, not a failure. Titles
             # are inconsistent enough between companies that treating this
             # as binary throws away good people.
-            wanted_indexes = [
-                _SENIORITY_ORDER.index(s) for s in filters.seniorities if s in _SENIORITY_ORDER
-            ]
-            if (
-                wanted_indexes
-                and min(abs(_SENIORITY_ORDER.index(level) - i) for i in wanted_indexes) == 1
-            ):
-                earned += 5
-                reasons.append(
-                    {"label": "Seniority", "detail": f"{level}, one level off", "points": 5}
-                )
-            else:
-                reasons.append({"label": "Seniority", "detail": level, "points": 0})
+            earned += 5
+            reasons.append({"label": "Seniority", "detail": f"{level}, one level off", "points": 5})
+        elif level:
+            reasons.append({"label": "Seniority", "detail": level, "points": 0})
+        else:
+            # An unknown level still costs the ten points it was measured
+            # against, so it has to say so. Silently deducting for a field
+            # the provider simply did not return would look like a low
+            # score for a reason the operator can never find.
+            reasons.append(
+                {
+                    "label": "Seniority",
+                    "detail": "not stated by the provider",
+                    "points": 0,
+                }
+            )
 
     if filters.min_years is not None and prospect.years_experience is not None:
         available += 10
@@ -184,6 +195,47 @@ def score_prospect(
 
 
 # ── persistence ──────────────────────────────────────────────
+
+
+async def prospect_out(session: AsyncSession, settings: Settings, row: Prospect) -> ProspectOut:
+    """Render one prospect for the API, consent decision included.
+
+    The callable flag is computed here rather than stored, because it
+    depends on the environment's allowlist and the clock, both of which
+    change without the prospect changing. A stored flag would go stale
+    silently, which for this particular flag means calling someone the
+    deployment is no longer permitted to call.
+    """
+    decision = await allowlist_for(session, settings, row)
+    # An allowlist id means the gate found a consented number for this
+    # person, whatever it then decided about the clock. That is the fact
+    # the campaign builder needs; whether the phone may ring right now is
+    # re-decided at launch anyway.
+    consented = decision.allowlist_id is not None
+    return ProspectOut(
+        id=row.id,
+        full_name=row.full_name,
+        headline=row.headline,
+        job_title=row.job_title,
+        seniority=row.seniority,
+        company_name=row.company_name,
+        industry=row.industry,
+        years_experience=row.years_experience,
+        skills=row.skills,
+        location_city=row.location_city,
+        location_country=row.location_country,
+        linkedin_url=row.linkedin_url,
+        phone_status=PhoneStatus(row.phone_status),
+        consented=consented,
+        callable=decision.allowed,
+        deferrable=decision.deferrable,
+        not_callable_reason=None if decision.allowed else decision.reason,
+        do_not_contact=row.do_not_contact,
+        fit_score=row.fit_score,
+        fit_reasons=row.fit_reasons,
+    )
+
+
 async def _upsert_prospect(
     session: AsyncSession, incoming: ProviderProspect, score: int, reasons: list[dict[str, Any]]
 ) -> Prospect:
@@ -294,32 +346,10 @@ async def run_search(
         row = await _upsert_prospect(session, incoming, score, reasons)
         session.add(ProspectSearchHit(search_id=search.id, prospect_id=row.id, rank=rank))
 
-        decision = await allowlist_for(session, settings, row)
-        if decision.allowed:
+        rendered = await prospect_out(session, settings, row)
+        if rendered.consented:
             callable_count += 1
-
-        out.append(
-            ProspectOut(
-                id=row.id,
-                full_name=row.full_name,
-                headline=row.headline,
-                job_title=row.job_title,
-                seniority=row.seniority,
-                company_name=row.company_name,
-                industry=row.industry,
-                years_experience=row.years_experience,
-                skills=row.skills,
-                location_city=row.location_city,
-                location_country=row.location_country,
-                linkedin_url=row.linkedin_url,
-                phone_status=PhoneStatus(row.phone_status),
-                callable=decision.allowed,
-                not_callable_reason=None if decision.allowed else decision.reason,
-                do_not_contact=row.do_not_contact,
-                fit_score=row.fit_score,
-                fit_reasons=row.fit_reasons,
-            )
-        )
+        out.append(rendered)
 
     await session.flush()
     logger.info(

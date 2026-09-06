@@ -9,13 +9,21 @@ on the provider.
 
 from __future__ import annotations
 
+import uuid
+
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
+from sqlalchemy import select
 
+from app.core.answers import mask_number
+from app.core.errors import NotFoundError, ValidationFailedError
 from app.deps import DbSession, SettingsDep
-from app.people.schemas import SearchRequest, SearchResponse
+from app.people.models import ContactAllowlistEntry, PhoneStatus, Prospect
+from app.people.providers import build_provider
+from app.people.schemas import ProspectOut, SearchRequest, SearchResponse
+from app.people.services.consent import seed_allowlist, within_calling_hours
 from app.people.services.extraction import ExtractionResult, extract_filters
-from app.people.services.search_service import run_search
+from app.people.services.search_service import prospect_out, run_search
 
 router = APIRouter(prefix="/people")
 
@@ -48,6 +56,7 @@ async def search(
 
 
 class AllowlistEntryOut(BaseModel):
+    id: uuid.UUID
     e164_masked: str
     label: str
 
@@ -71,26 +80,126 @@ class CallingPolicyOut(BaseModel):
 
 
 @router.get("/policy", response_model=CallingPolicyOut)
-async def policy(settings: SettingsDep) -> CallingPolicyOut:
+async def policy(session: DbSession, settings: SettingsDep) -> CallingPolicyOut:
     """The consent and calling rules currently in force."""
-    from app.people.providers import build_provider
-    from app.people.services.consent import within_calling_hours
 
     provider = build_provider(settings.people_provider, settings.pdl_api_key)
     reveals = provider.supports_phone_reveal()
     await provider.aclose()
+
+    permitted = settings.allowlisted_numbers
+    entries = [
+        entry
+        for entry in (await session.execute(select(ContactAllowlistEntry))).scalars()
+        # Rows survive an entry being removed from the environment, because
+        # a campaign may still reference one. Only what the environment
+        # currently permits is offered for new work.
+        if entry.e164 in permitted
+    ]
 
     return CallingPolicyOut(
         provider=provider.name,
         provider_reveals_phone=reveals,
         allowlist=[
             AllowlistEntryOut(
-                e164_masked=f"{entry.e164[:3]}•••••{entry.e164[-4:]}", label=entry.label
+                id=entry.id,
+                e164_masked=mask_number(entry.e164),
+                label=entry.label,
             )
-            for entry in settings.allowlist
+            for entry in entries
         ],
         calling_hours_start=settings.calling_hours_start,
         calling_hours_end=settings.calling_hours_end,
         calling_timezone=settings.calling_timezone,
         within_calling_hours=within_calling_hours(settings),
     )
+
+
+class LinkConsentRequest(BaseModel):
+    """Record that a sourced person is reachable on a consented number."""
+
+    allowlist_id: uuid.UUID
+
+
+@router.post("/prospects/{prospect_id}/consent", response_model=ProspectOut)
+async def link_consent(
+    prospect_id: uuid.UUID,
+    payload: LinkConsentRequest,
+    session: DbSession,
+    settings: SettingsDep,
+) -> ProspectOut:
+    """Bind a prospect to a number the operator has already consented to.
+
+    This is the only way a sourced person becomes callable, and it is
+    worth being precise about what it does and does not do.
+
+    It does **not** grant permission. The set of dialable numbers is fixed
+    by the environment and cannot be added to from inside the product.
+    What this records is that a particular sourced person is reachable on
+    a number that was already permitted, which is exactly what happens in
+    reality: you find someone through a directory, and their consent to be
+    called arrives through some other channel entirely, a reply, a
+    referral, an event sign-up. Nothing about being findable implies it.
+
+    The binding is exclusive. Two prospects pointing at one number would
+    mean a campaign calling the same handset twice about the same role
+    while believing it had reached two people.
+    """
+    prospect = await session.get(Prospect, prospect_id)
+    if prospect is None:
+        raise NotFoundError(f"No prospect with id {prospect_id}")
+
+    if prospect.do_not_contact:
+        raise ValidationFailedError(
+            "This person asked not to be contacted again. That outlives any "
+            "consent record, so the number cannot be re-linked."
+        )
+
+    entry = await session.get(ContactAllowlistEntry, payload.allowlist_id)
+    if entry is None:
+        raise NotFoundError("No such allowlist entry.")
+    if entry.e164 not in settings.allowlisted_numbers:
+        raise ValidationFailedError(
+            "That number is no longer in the environment's allowlist, so it "
+            "cannot be assigned to anyone new."
+        )
+
+    # Release the number from whoever holds it now.
+    for holder in (
+        await session.execute(select(Prospect).where(Prospect.phone_e164 == entry.e164))
+    ).scalars():
+        holder.phone_e164 = None
+        holder.phone_status = PhoneStatus.PRESENT_MASKED.value
+
+    prospect.phone_e164 = entry.e164
+    prospect.phone_status = PhoneStatus.REVEALED.value
+    await session.flush()
+
+    return await prospect_out(session, settings, prospect)
+
+
+@router.delete("/prospects/{prospect_id}/consent", response_model=ProspectOut)
+async def unlink_consent(
+    prospect_id: uuid.UUID, session: DbSession, settings: SettingsDep
+) -> ProspectOut:
+    """Withdraw a consent binding, making the person uncallable again."""
+    prospect = await session.get(Prospect, prospect_id)
+    if prospect is None:
+        raise NotFoundError(f"No prospect with id {prospect_id}")
+
+    prospect.phone_e164 = None
+    prospect.phone_status = PhoneStatus.PRESENT_MASKED.value
+    await session.flush()
+
+    return await prospect_out(session, settings, prospect)
+
+
+@router.post("/allowlist/seed", response_model=CallingPolicyOut)
+async def seed(session: DbSession, settings: SettingsDep) -> CallingPolicyOut:
+    """Load the environment's allowlist into the database.
+
+    Idempotent. Runs at startup too; exposed so an operator who edits the
+    environment can pick up the change without a restart.
+    """
+    await seed_allowlist(session, settings)
+    return await policy(session, settings)

@@ -323,6 +323,204 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/people/extract-filters": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Extract
+     * @description Turn a job description into editable search filters.
+     *
+     *     Spends nothing and saves nothing. ``method`` reports whether a model
+     *     read the description or whether keyword matching filled it in, so the
+     *     screen can say how much to trust what it is showing.
+     */
+    post: operations["extract_api_v1_people_extract_filters_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/people/search": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Search
+     * @description Search for people, rank them, and record what was asked for.
+     *
+     *     Returns the literal provider query alongside the results. A surprising
+     *     result set should be explainable rather than arguable.
+     */
+    post: operations["search_api_v1_people_search_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/people/policy": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Policy
+     * @description The consent and calling rules currently in force.
+     */
+    get: operations["policy_api_v1_people_policy_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/people/prospects/{prospect_id}/consent": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Link Consent
+     * @description Bind a prospect to a number the operator has already consented to.
+     *
+     *     This is the only way a sourced person becomes callable, and it is
+     *     worth being precise about what it does and does not do.
+     *
+     *     It does **not** grant permission. The set of dialable numbers is fixed
+     *     by the environment and cannot be added to from inside the product.
+     *     What this records is that a particular sourced person is reachable on
+     *     a number that was already permitted, which is exactly what happens in
+     *     reality: you find someone through a directory, and their consent to be
+     *     called arrives through some other channel entirely, a reply, a
+     *     referral, an event sign-up. Nothing about being findable implies it.
+     *
+     *     The binding is exclusive. Two prospects pointing at one number would
+     *     mean a campaign calling the same handset twice about the same role
+     *     while believing it had reached two people.
+     */
+    post: operations["link_consent_api_v1_people_prospects__prospect_id__consent_post"];
+    /**
+     * Unlink Consent
+     * @description Withdraw a consent binding, making the person uncallable again.
+     */
+    delete: operations["unlink_consent_api_v1_people_prospects__prospect_id__consent_delete"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/people/allowlist/seed": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Seed
+     * @description Load the environment's allowlist into the database.
+     *
+     *     Idempotent. Runs at startup too; exposed so an operator who edits the
+     *     environment can pick up the change without a restart.
+     */
+    post: operations["seed_api_v1_people_allowlist_seed_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/campaigns": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Campaigns */
+    get: operations["list_campaigns_api_v1_campaigns_get"];
+    put?: never;
+    /**
+     * Create Campaign
+     * @description Assemble a campaign, running the consent gate over every prospect.
+     *
+     *     Creating a campaign places no calls. Prospects the gate refuses are
+     *     reported in the detail's blocked count rather than stored, because a
+     *     target row cannot exist without a consented number to point at.
+     */
+    post: operations["create_campaign_api_v1_campaigns_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/campaigns/{campaign_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get Campaign
+     * @description A campaign with its live call state and extracted answers.
+     */
+    get: operations["get_campaign_api_v1_campaigns__campaign_id__get"];
+    put?: never;
+    post?: never;
+    /** Delete Campaign */
+    delete: operations["delete_campaign_api_v1_campaigns__campaign_id__delete"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/campaigns/{campaign_id}/launch": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Launch
+     * @description Place the calls.
+     *
+     *     Every target is re-checked against the consent gate here, not just
+     *     when the campaign was built, because the clock moves between the two.
+     */
+    post: operations["launch_api_v1_campaigns__campaign_id__launch_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/webhooks/hunar/{callback_token}/{event_slug}": {
     parameters: {
       query?: never;
@@ -371,6 +569,18 @@ export interface components {
       };
       /** Variables */
       variables: string[];
+    };
+    /** AllowlistEntryOut */
+    AllowlistEntryOut: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** E164 Masked */
+      e164_masked: string;
+      /** Label */
+      label: string;
     };
     /**
      * AnswerType
@@ -450,6 +660,173 @@ export interface components {
        * Format: date-time
        */
       updated_at: string;
+    };
+    /**
+     * CallingPolicyOut
+     * @description What this deployment is permitted to do, stated plainly.
+     *
+     *     Surfaced to the UI so the calling policy is visible in the product
+     *     rather than buried in a README nobody opens. A recruiter looking at a
+     *     list of people it will not call deserves to see why in the same
+     *     screen.
+     */
+    CallingPolicyOut: {
+      /** Provider */
+      provider: string;
+      /** Provider Reveals Phone */
+      provider_reveals_phone: boolean;
+      /** Allowlist */
+      allowlist: components["schemas"]["AllowlistEntryOut"][];
+      /** Calling Hours Start */
+      calling_hours_start: string;
+      /** Calling Hours End */
+      calling_hours_end: string;
+      /** Calling Timezone */
+      calling_timezone: string;
+      /** Within Calling Hours */
+      within_calling_hours: boolean;
+    };
+    /**
+     * CampaignCreate
+     * @description Start an outreach round against a set of prospects.
+     */
+    CampaignCreate: {
+      /** Search Id */
+      search_id?: string | null;
+      /** Prospect Ids */
+      prospect_ids: string[];
+      /** Job Title */
+      job_title: string;
+      /** Company Name */
+      company_name: string;
+      /** Job City */
+      job_city?: string | null;
+      /** Work Mode */
+      work_mode?: string | null;
+      /** Role Pitch */
+      role_pitch: string;
+      /** Comp Range Text */
+      comp_range_text?: string | null;
+      /**
+       * Recruiter Name
+       * @default our recruiter
+       */
+      recruiter_name: string;
+    };
+    /** CampaignDetail */
+    CampaignDetail: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Job Title */
+      job_title: string;
+      /** Company Name */
+      company_name: string;
+      /** Job City */
+      job_city?: string | null;
+      /** Status */
+      status: string;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Launched At */
+      launched_at?: string | null;
+      /**
+       * Target Count
+       * @default 0
+       */
+      target_count: number;
+      /**
+       * Completed Count
+       * @default 0
+       */
+      completed_count: number;
+      /**
+       * Interested Count
+       * @default 0
+       */
+      interested_count: number;
+      /**
+       * Blocked Count
+       * @default 0
+       */
+      blocked_count: number;
+      /**
+       * Role Pitch
+       * @default
+       */
+      role_pitch: string;
+      /** Comp Range Text */
+      comp_range_text?: string | null;
+      /**
+       * Recruiter Name
+       * @default
+       */
+      recruiter_name: string;
+      /** Work Mode */
+      work_mode?: string | null;
+      /** Columns */
+      columns?: {
+        [key: string]: unknown;
+      }[];
+      /** Targets */
+      targets?: components["schemas"]["TargetOut"][];
+      /**
+       * In Progress
+       * @default false
+       */
+      in_progress: boolean;
+      /** Script Preview */
+      script_preview?: {
+        [key: string]: string;
+      };
+    };
+    /** CampaignSummary */
+    CampaignSummary: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Job Title */
+      job_title: string;
+      /** Company Name */
+      company_name: string;
+      /** Job City */
+      job_city?: string | null;
+      /** Status */
+      status: string;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Launched At */
+      launched_at?: string | null;
+      /**
+       * Target Count
+       * @default 0
+       */
+      target_count: number;
+      /**
+       * Completed Count
+       * @default 0
+       */
+      completed_count: number;
+      /**
+       * Interested Count
+       * @default 0
+       */
+      interested_count: number;
+      /**
+       * Blocked Count
+       * @default 0
+       */
+      blocked_count: number;
     };
     /** CandidateCreate */
     CandidateCreate: {
@@ -566,9 +943,14 @@ export interface components {
       is_knockout: boolean;
       /**
        * Minimum
-       * @description For a NUMBER question only, the smallest acceptable answer when the description states one, such as 1 for 'minimum 1 year of experience'. Null when no threshold is given, and null for every other answer type.
+       * @description For a NUMBER question only. Copy the exact threshold the description states, so 'minimum 1 year of experience' gives 1 and 'at least 3 years' gives 3. Use null when the description states no threshold. Never use 0 as a stand-in for 'no threshold', because a minimum of zero excludes nobody. Always null for every other answer type.
        */
       minimum?: number | null;
+    };
+    /** ExtractFiltersRequest */
+    ExtractFiltersRequest: {
+      /** Jd Text */
+      jd_text: string;
     };
     /**
      * ExtractRequest
@@ -579,12 +961,28 @@ export interface components {
       jd_text: string;
     };
     /**
+     * ExtractionResult
+     * @description Filters, plus an honest account of where they came from.
+     */
+    ExtractionResult: {
+      filters: components["schemas"]["SearchFilters"];
+      /**
+       * Method
+       * @enum {string}
+       */
+      method: "llm" | "heuristic" | "manual";
+      /** Note */
+      note?: string | null;
+    };
+    /**
      * FieldSpec
-     * @description One column of the results table, derived from a question.
+     * @description One column of a results table.
      *
      *     Returned alongside the rows so the frontend can build a table for a
-     *     schema it has never seen. ``system`` marks the fields every job gets
-     *     regardless of what the recruiter asked.
+     *     schema it has never seen. That is what lets one table component serve
+     *     screening answers and outreach answers without knowing which it is
+     *     looking at. ``system`` marks fields that are always present regardless
+     *     of what the operator asked for.
      */
     FieldSpec: {
       /** Key */
@@ -824,6 +1222,27 @@ export interface components {
       /** Questions */
       questions?: components["schemas"]["QuestionInput"][] | null;
     };
+    /** LaunchOutreachReport */
+    LaunchOutreachReport: {
+      /** Launched */
+      launched: number;
+      /** Blocked */
+      blocked?: {
+        [key: string]: string;
+      }[];
+      /**
+       * Deferred
+       * @default 0
+       */
+      deferred: number;
+      /**
+       * Unresolved
+       * @default 0
+       */
+      unresolved: number;
+      /** Targets */
+      targets?: components["schemas"]["TargetOut"][];
+    };
     /** LaunchReport */
     LaunchReport: {
       /** Launched */
@@ -856,6 +1275,17 @@ export interface components {
        */
       retry_interval_hours: 0 | 3 | 6 | 9 | 12 | 24;
     };
+    /**
+     * LinkConsentRequest
+     * @description Record that a sourced person is reachable on a consented number.
+     */
+    LinkConsentRequest: {
+      /**
+       * Allowlist Id
+       * Format: uuid
+       */
+      allowlist_id: string;
+    };
     /** MetaResponse */
     MetaResponse: {
       /** Version */
@@ -870,6 +1300,12 @@ export interface components {
       /** Allowlist Size */
       allowlist_size: number;
     };
+    /**
+     * PhoneStatus
+     * @description What we actually know about reaching a prospect by phone.
+     * @enum {string}
+     */
+    PhoneStatus: "REVEALED" | "PRESENT_MASKED" | "ABSENT" | "UNKNOWN";
     /**
      * PreviewRequest
      * @description Ask what the agent would be told, without saving anything.
@@ -904,6 +1340,65 @@ export interface components {
       language: string;
       /** Questions */
       questions: components["schemas"]["QuestionInput"][];
+    };
+    /** ProspectOut */
+    ProspectOut: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Full Name */
+      full_name: string;
+      /** Headline */
+      headline?: string | null;
+      /** Job Title */
+      job_title?: string | null;
+      /** Seniority */
+      seniority?: string | null;
+      /** Company Name */
+      company_name?: string | null;
+      /** Industry */
+      industry?: string | null;
+      /** Years Experience */
+      years_experience?: number | null;
+      /** Skills */
+      skills?: string[];
+      /** Location City */
+      location_city?: string | null;
+      /** Location Country */
+      location_country?: string | null;
+      /** Linkedin Url */
+      linkedin_url?: string | null;
+      phone_status: components["schemas"]["PhoneStatus"];
+      /**
+       * Consented
+       * @default false
+       */
+      consented: boolean;
+      /**
+       * Callable
+       * @default false
+       */
+      callable: boolean;
+      /**
+       * Deferrable
+       * @default false
+       */
+      deferrable: boolean;
+      /** Not Callable Reason */
+      not_callable_reason?: string | null;
+      /**
+       * Do Not Contact
+       * @default false
+       */
+      do_not_contact: boolean;
+      /** Fit Score */
+      fit_score?: number | null;
+      /** Fit Reasons */
+      fit_reasons?: {
+        [key: string]: unknown;
+      }[];
     };
     /**
      * QuestionInput
@@ -1035,6 +1530,189 @@ export interface components {
        */
       in_progress: boolean;
     };
+    /**
+     * SearchFilters
+     * @description What we will actually ask the provider for.
+     *
+     *     Deliberately provider-neutral. People Data Labs wants an
+     *     Elasticsearch query and Apollo wants flat parameters, so each adapter
+     *     owns that translation rather than leaking it into this shape.
+     */
+    SearchFilters: {
+      /** Titles */
+      titles?: string[];
+      /** Excluded Titles */
+      excluded_titles?: string[];
+      /** Seniorities */
+      seniorities?: (
+        "ic" | "senior" | "lead" | "manager" | "director" | "vp" | "cxo"
+      )[];
+      /** Skills Required */
+      skills_required?: string[];
+      /** Skills Nice */
+      skills_nice?: string[];
+      /** Cities */
+      cities?: string[];
+      /**
+       * Country
+       * @default india
+       */
+      country: string;
+      /** Industries */
+      industries?: string[];
+      /** Company Size Bands */
+      company_size_bands?: string[];
+      /** Exclude Companies */
+      exclude_companies?: string[];
+      /** Min Years */
+      min_years?: number | null;
+      /** Max Years */
+      max_years?: number | null;
+      /**
+       * Require Phone
+       * @default true
+       */
+      require_phone: boolean;
+      /**
+       * Hiring Title
+       * @default
+       */
+      hiring_title: string;
+      /**
+       * Company Name
+       * @default
+       */
+      company_name: string;
+      /**
+       * Role Pitch
+       * @default
+       */
+      role_pitch: string;
+      /**
+       * Comp Range Text
+       * @default
+       */
+      comp_range_text: string;
+      /**
+       * Work Mode
+       * @default
+       */
+      work_mode: string;
+    };
+    /**
+     * SearchRequest
+     * @description Paste a job description, optionally with corrected filters.
+     */
+    SearchRequest: {
+      /** Jd Text */
+      jd_text: string;
+      filters?: components["schemas"]["SearchFilters"] | null;
+      /**
+       * Limit
+       * @default 25
+       */
+      limit: number;
+    };
+    /**
+     * SearchResponse
+     * @description Everything the search screen needs, including how it was derived.
+     */
+    SearchResponse: {
+      /**
+       * Search Id
+       * Format: uuid
+       */
+      search_id: string;
+      /** Provider */
+      provider: string;
+      /** Provider Degraded To */
+      provider_degraded_to?: string | null;
+      /**
+       * Extraction Method
+       * @enum {string}
+       */
+      extraction_method: "llm" | "heuristic" | "manual";
+      filters: components["schemas"]["SearchFilters"];
+      /** Provider Query */
+      provider_query?: {
+        [key: string]: unknown;
+      };
+      /** Prospects */
+      prospects?: components["schemas"]["ProspectOut"][];
+      /** Total Estimated */
+      total_estimated?: number | null;
+      /**
+       * Credits Charged
+       * @default 0
+       */
+      credits_charged: number;
+      /**
+       * Cache Hit
+       * @default false
+       */
+      cache_hit: boolean;
+      /**
+       * Callable Count
+       * @default 0
+       */
+      callable_count: number;
+      /** Note */
+      note?: string | null;
+    };
+    /** TargetOut */
+    TargetOut: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Prospect Id
+       * Format: uuid
+       */
+      prospect_id: string;
+      /**
+       * Prospect Name
+       * @default
+       */
+      prospect_name: string;
+      /**
+       * Mobile Masked
+       * @default
+       */
+      mobile_masked: string;
+      /**
+       * Allowlist Label
+       * @default
+       */
+      allowlist_label: string;
+      status: components["schemas"]["TargetStatus"];
+      /** Block Reason */
+      block_reason?: string | null;
+      /** Next Attempt At */
+      next_attempt_at?: string | null;
+      /**
+       * Call Status
+       * @default NOT_STARTED
+       */
+      call_status: string;
+      /** Recording Url */
+      recording_url?: string | null;
+      /** Values */
+      values?: {
+        [key: string]: unknown;
+      };
+      /** Raw Values */
+      raw_values?: {
+        [key: string]: unknown;
+      };
+    };
+    /**
+     * TargetStatus
+     * @enum {string}
+     */
+    TargetStatus:
+      "PENDING" | "DEFERRED" | "CALLING" | "DONE" | "BLOCKED" | "FAILED";
     /** ValidationError */
     ValidationError: {
       /** Location */
@@ -1632,6 +2310,322 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["ResultsResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  extract_api_v1_people_extract_filters_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ExtractFiltersRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ExtractionResult"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  search_api_v1_people_search_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SearchRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["SearchResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  policy_api_v1_people_policy_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["CallingPolicyOut"];
+        };
+      };
+    };
+  };
+  link_consent_api_v1_people_prospects__prospect_id__consent_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        prospect_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["LinkConsentRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ProspectOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  unlink_consent_api_v1_people_prospects__prospect_id__consent_delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        prospect_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ProspectOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  seed_api_v1_people_allowlist_seed_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["CallingPolicyOut"];
+        };
+      };
+    };
+  };
+  list_campaigns_api_v1_campaigns_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["CampaignSummary"][];
+        };
+      };
+    };
+  };
+  create_campaign_api_v1_campaigns_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CampaignCreate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["CampaignDetail"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  get_campaign_api_v1_campaigns__campaign_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        campaign_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["CampaignDetail"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  delete_campaign_api_v1_campaigns__campaign_id__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        campaign_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  launch_api_v1_campaigns__campaign_id__launch_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        campaign_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["LaunchOutreachReport"];
         };
       };
       /** @description Validation Error */

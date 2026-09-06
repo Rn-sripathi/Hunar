@@ -805,6 +805,384 @@
         }
       }
     },
+    "/api/v1/people/extract-filters": {
+      "post": {
+        "summary": "Extract",
+        "description": "Turn a job description into editable search filters.\n\nSpends nothing and saves nothing. ``method`` reports whether a model\nread the description or whether keyword matching filled it in, so the\nscreen can say how much to trust what it is showing.",
+        "operationId": "extract_api_v1_people_extract_filters_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExtractFiltersRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtractionResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/people/search": {
+      "post": {
+        "summary": "Search",
+        "description": "Search for people, rank them, and record what was asked for.\n\nReturns the literal provider query alongside the results. A surprising\nresult set should be explainable rather than arguable.",
+        "operationId": "search_api_v1_people_search_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SearchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/people/policy": {
+      "get": {
+        "summary": "Policy",
+        "description": "The consent and calling rules currently in force.",
+        "operationId": "policy_api_v1_people_policy_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallingPolicyOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/people/prospects/{prospect_id}/consent": {
+      "post": {
+        "summary": "Link Consent",
+        "description": "Bind a prospect to a number the operator has already consented to.\n\nThis is the only way a sourced person becomes callable, and it is\nworth being precise about what it does and does not do.\n\nIt does **not** grant permission. The set of dialable numbers is fixed\nby the environment and cannot be added to from inside the product.\nWhat this records is that a particular sourced person is reachable on\na number that was already permitted, which is exactly what happens in\nreality: you find someone through a directory, and their consent to be\ncalled arrives through some other channel entirely, a reply, a\nreferral, an event sign-up. Nothing about being findable implies it.\n\nThe binding is exclusive. Two prospects pointing at one number would\nmean a campaign calling the same handset twice about the same role\nwhile believing it had reached two people.",
+        "operationId": "link_consent_api_v1_people_prospects__prospect_id__consent_post",
+        "parameters": [
+          {
+            "name": "prospect_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Prospect Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkConsentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProspectOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Unlink Consent",
+        "description": "Withdraw a consent binding, making the person uncallable again.",
+        "operationId": "unlink_consent_api_v1_people_prospects__prospect_id__consent_delete",
+        "parameters": [
+          {
+            "name": "prospect_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Prospect Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProspectOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/people/allowlist/seed": {
+      "post": {
+        "summary": "Seed",
+        "description": "Load the environment's allowlist into the database.\n\nIdempotent. Runs at startup too; exposed so an operator who edits the\nenvironment can pick up the change without a restart.",
+        "operationId": "seed_api_v1_people_allowlist_seed_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallingPolicyOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/campaigns": {
+      "get": {
+        "summary": "List Campaigns",
+        "operationId": "list_campaigns_api_v1_campaigns_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CampaignSummary"
+                  },
+                  "type": "array",
+                  "title": "Response List Campaigns Api V1 Campaigns Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Campaign",
+        "description": "Assemble a campaign, running the consent gate over every prospect.\n\nCreating a campaign places no calls. Prospects the gate refuses are\nreported in the detail's blocked count rather than stored, because a\ntarget row cannot exist without a consented number to point at.",
+        "operationId": "create_campaign_api_v1_campaigns_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CampaignCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/campaigns/{campaign_id}": {
+      "get": {
+        "summary": "Get Campaign",
+        "description": "A campaign with its live call state and extracted answers.",
+        "operationId": "get_campaign_api_v1_campaigns__campaign_id__get",
+        "parameters": [
+          {
+            "name": "campaign_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Campaign Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Campaign",
+        "operationId": "delete_campaign_api_v1_campaigns__campaign_id__delete",
+        "parameters": [
+          {
+            "name": "campaign_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Campaign Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/campaigns/{campaign_id}/launch": {
+      "post": {
+        "summary": "Launch",
+        "description": "Place the calls.\n\nEvery target is re-checked against the consent gate here, not just\nwhen the campaign was built, because the clock moves between the two.",
+        "operationId": "launch_api_v1_campaigns__campaign_id__launch_post",
+        "parameters": [
+          {
+            "name": "campaign_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Campaign Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LaunchOutreachReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/webhooks/hunar/{callback_token}/{event_slug}": {
       "post": {
         "tags": [
@@ -908,6 +1286,30 @@
         ],
         "title": "AgentPreview",
         "description": "Exactly what the voice agent will be told, shown before any call.\n\nThis is the screen that makes the product legible: a recruiter can\nread the script and the extraction schema their job description\nproduced, and correct it, rather than discovering a bad prompt from a\nconfused candidate on the phone."
+      },
+      "AllowlistEntryOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "e164_masked": {
+            "type": "string",
+            "title": "E164 Masked"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "e164_masked",
+          "label"
+        ],
+        "title": "AllowlistEntryOut"
       },
       "AnswerType": {
         "type": "string",
@@ -1127,6 +1529,363 @@
           "updated_at"
         ],
         "title": "CallAttemptOut"
+      },
+      "CallingPolicyOut": {
+        "properties": {
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "provider_reveals_phone": {
+            "type": "boolean",
+            "title": "Provider Reveals Phone"
+          },
+          "allowlist": {
+            "items": {
+              "$ref": "#/components/schemas/AllowlistEntryOut"
+            },
+            "type": "array",
+            "title": "Allowlist"
+          },
+          "calling_hours_start": {
+            "type": "string",
+            "title": "Calling Hours Start"
+          },
+          "calling_hours_end": {
+            "type": "string",
+            "title": "Calling Hours End"
+          },
+          "calling_timezone": {
+            "type": "string",
+            "title": "Calling Timezone"
+          },
+          "within_calling_hours": {
+            "type": "boolean",
+            "title": "Within Calling Hours"
+          }
+        },
+        "type": "object",
+        "required": [
+          "provider",
+          "provider_reveals_phone",
+          "allowlist",
+          "calling_hours_start",
+          "calling_hours_end",
+          "calling_timezone",
+          "within_calling_hours"
+        ],
+        "title": "CallingPolicyOut",
+        "description": "What this deployment is permitted to do, stated plainly.\n\nSurfaced to the UI so the calling policy is visible in the product\nrather than buried in a README nobody opens. A recruiter looking at a\nlist of people it will not call deserves to see why in the same\nscreen."
+      },
+      "CampaignCreate": {
+        "properties": {
+          "search_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Search Id"
+          },
+          "prospect_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "maxItems": 500,
+            "minItems": 1,
+            "title": "Prospect Ids"
+          },
+          "job_title": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 2,
+            "title": "Job Title"
+          },
+          "company_name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Company Name"
+          },
+          "job_city": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Job City"
+          },
+          "work_mode": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Work Mode"
+          },
+          "role_pitch": {
+            "type": "string",
+            "maxLength": 240,
+            "minLength": 3,
+            "title": "Role Pitch"
+          },
+          "comp_range_text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comp Range Text"
+          },
+          "recruiter_name": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Recruiter Name",
+            "default": "our recruiter"
+          }
+        },
+        "type": "object",
+        "required": [
+          "prospect_ids",
+          "job_title",
+          "company_name",
+          "role_pitch"
+        ],
+        "title": "CampaignCreate",
+        "description": "Start an outreach round against a set of prospects."
+      },
+      "CampaignDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "job_title": {
+            "type": "string",
+            "title": "Job Title"
+          },
+          "company_name": {
+            "type": "string",
+            "title": "Company Name"
+          },
+          "job_city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Job City"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "launched_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Launched At"
+          },
+          "target_count": {
+            "type": "integer",
+            "title": "Target Count",
+            "default": 0
+          },
+          "completed_count": {
+            "type": "integer",
+            "title": "Completed Count",
+            "default": 0
+          },
+          "interested_count": {
+            "type": "integer",
+            "title": "Interested Count",
+            "default": 0
+          },
+          "blocked_count": {
+            "type": "integer",
+            "title": "Blocked Count",
+            "default": 0
+          },
+          "role_pitch": {
+            "type": "string",
+            "title": "Role Pitch",
+            "default": ""
+          },
+          "comp_range_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comp Range Text"
+          },
+          "recruiter_name": {
+            "type": "string",
+            "title": "Recruiter Name",
+            "default": ""
+          },
+          "work_mode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Work Mode"
+          },
+          "columns": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Columns"
+          },
+          "targets": {
+            "items": {
+              "$ref": "#/components/schemas/TargetOut"
+            },
+            "type": "array",
+            "title": "Targets"
+          },
+          "in_progress": {
+            "type": "boolean",
+            "title": "In Progress",
+            "default": false
+          },
+          "script_preview": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Script Preview"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "job_title",
+          "company_name",
+          "status",
+          "created_at"
+        ],
+        "title": "CampaignDetail"
+      },
+      "CampaignSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "job_title": {
+            "type": "string",
+            "title": "Job Title"
+          },
+          "company_name": {
+            "type": "string",
+            "title": "Company Name"
+          },
+          "job_city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Job City"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "launched_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Launched At"
+          },
+          "target_count": {
+            "type": "integer",
+            "title": "Target Count",
+            "default": 0
+          },
+          "completed_count": {
+            "type": "integer",
+            "title": "Completed Count",
+            "default": 0
+          },
+          "interested_count": {
+            "type": "integer",
+            "title": "Interested Count",
+            "default": 0
+          },
+          "blocked_count": {
+            "type": "integer",
+            "title": "Blocked Count",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "job_title",
+          "company_name",
+          "status",
+          "created_at"
+        ],
+        "title": "CampaignSummary"
       },
       "CandidateCreate": {
         "properties": {
@@ -1358,7 +2117,7 @@
               }
             ],
             "title": "Minimum",
-            "description": "For a NUMBER question only, the smallest acceptable answer when the description states one, such as 1 for 'minimum 1 year of experience'. Null when no threshold is given, and null for every other answer type."
+            "description": "For a NUMBER question only. Copy the exact threshold the description states, so 'minimum 1 year of experience' gives 1 and 'at least 3 years' gives 3. Use null when the description states no threshold. Never use 0 as a stand-in for 'no threshold', because a minimum of zero excludes nobody. Always null for every other answer type."
           }
         },
         "type": "object",
@@ -1371,6 +2130,21 @@
         ],
         "title": "DraftQuestion",
         "description": "One screening question the model proposed."
+      },
+      "ExtractFiltersRequest": {
+        "properties": {
+          "jd_text": {
+            "type": "string",
+            "maxLength": 20000,
+            "minLength": 1,
+            "title": "Jd Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "jd_text"
+        ],
+        "title": "ExtractFiltersRequest"
       },
       "ExtractRequest": {
         "properties": {
@@ -1387,6 +2161,40 @@
         ],
         "title": "ExtractRequest",
         "description": "A pasted job description, to be turned into a filled-in form."
+      },
+      "ExtractionResult": {
+        "properties": {
+          "filters": {
+            "$ref": "#/components/schemas/SearchFilters"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "llm",
+              "heuristic",
+              "manual"
+            ],
+            "title": "Method"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "filters",
+          "method"
+        ],
+        "title": "ExtractionResult",
+        "description": "Filters, plus an honest account of where they came from."
       },
       "FieldSpec": {
         "properties": {
@@ -1438,7 +2246,7 @@
           "answer_type"
         ],
         "title": "FieldSpec",
-        "description": "One column of the results table, derived from a question.\n\nReturned alongside the rows so the frontend can build a table for a\nschema it has never seen. ``system`` marks the fields every job gets\nregardless of what the recruiter asked."
+        "description": "One column of a results table.\n\nReturned alongside the rows so the frontend can build a table for a\nschema it has never seen. That is what lets one table component serve\nscreening answers and outreach answers without knowing which it is\nlooking at. ``system`` marks fields that are always present regardless\nof what the operator asked for."
       },
       "HTTPValidationError": {
         "properties": {
@@ -1963,6 +2771,46 @@
         "type": "object",
         "title": "JobUpdate"
       },
+      "LaunchOutreachReport": {
+        "properties": {
+          "launched": {
+            "type": "integer",
+            "title": "Launched"
+          },
+          "blocked": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Blocked"
+          },
+          "deferred": {
+            "type": "integer",
+            "title": "Deferred",
+            "default": 0
+          },
+          "unresolved": {
+            "type": "integer",
+            "title": "Unresolved",
+            "default": 0
+          },
+          "targets": {
+            "items": {
+              "$ref": "#/components/schemas/TargetOut"
+            },
+            "type": "array",
+            "title": "Targets"
+          }
+        },
+        "type": "object",
+        "required": [
+          "launched"
+        ],
+        "title": "LaunchOutreachReport"
+      },
       "LaunchReport": {
         "properties": {
           "launched": {
@@ -2040,6 +2888,21 @@
         "title": "LaunchRequest",
         "description": "Ask to place calls for a set of candidates."
       },
+      "LinkConsentRequest": {
+        "properties": {
+          "allowlist_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Allowlist Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "allowlist_id"
+        ],
+        "title": "LinkConsentRequest",
+        "description": "Record that a sourced person is reachable on a consented number."
+      },
       "MetaResponse": {
         "properties": {
           "version": {
@@ -2076,6 +2939,17 @@
           "allowlist_size"
         ],
         "title": "MetaResponse"
+      },
+      "PhoneStatus": {
+        "type": "string",
+        "enum": [
+          "REVEALED",
+          "PRESENT_MASKED",
+          "ABSENT",
+          "UNKNOWN"
+        ],
+        "title": "PhoneStatus",
+        "description": "What we actually know about reaching a prospect by phone."
       },
       "PreviewRequest": {
         "properties": {
@@ -2129,6 +3003,185 @@
         ],
         "title": "PreviewRequest",
         "description": "Ask what the agent would be told, without saving anything.\n\nPowers the live preview in the create-job form. Making the generated\nscript visible before any call is placed is what lets a recruiter\ncatch a bad prompt themselves, rather than hearing about it from a\nconfused candidate."
+      },
+      "ProspectOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "full_name": {
+            "type": "string",
+            "title": "Full Name"
+          },
+          "headline": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Headline"
+          },
+          "job_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Job Title"
+          },
+          "seniority": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seniority"
+          },
+          "company_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company Name"
+          },
+          "industry": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Industry"
+          },
+          "years_experience": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Years Experience"
+          },
+          "skills": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Skills"
+          },
+          "location_city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location City"
+          },
+          "location_country": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location Country"
+          },
+          "linkedin_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Linkedin Url"
+          },
+          "phone_status": {
+            "$ref": "#/components/schemas/PhoneStatus"
+          },
+          "consented": {
+            "type": "boolean",
+            "title": "Consented",
+            "default": false
+          },
+          "callable": {
+            "type": "boolean",
+            "title": "Callable",
+            "default": false
+          },
+          "deferrable": {
+            "type": "boolean",
+            "title": "Deferrable",
+            "default": false
+          },
+          "not_callable_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Not Callable Reason"
+          },
+          "do_not_contact": {
+            "type": "boolean",
+            "title": "Do Not Contact",
+            "default": false
+          },
+          "fit_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fit Score"
+          },
+          "fit_reasons": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Fit Reasons"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "full_name",
+          "phone_status"
+        ],
+        "title": "ProspectOut"
       },
       "QuestionInput": {
         "properties": {
@@ -2469,6 +3522,376 @@
         ],
         "title": "ResultsResponse",
         "description": "Columns and rows together, so the table can build itself."
+      },
+      "SearchFilters": {
+        "properties": {
+          "titles": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Titles"
+          },
+          "excluded_titles": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Excluded Titles"
+          },
+          "seniorities": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "ic",
+                "senior",
+                "lead",
+                "manager",
+                "director",
+                "vp",
+                "cxo"
+              ]
+            },
+            "type": "array",
+            "title": "Seniorities"
+          },
+          "skills_required": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Skills Required"
+          },
+          "skills_nice": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Skills Nice"
+          },
+          "cities": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Cities"
+          },
+          "country": {
+            "type": "string",
+            "title": "Country",
+            "default": "india"
+          },
+          "industries": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Industries"
+          },
+          "company_size_bands": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Company Size Bands"
+          },
+          "exclude_companies": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Exclude Companies"
+          },
+          "min_years": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 50.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Years"
+          },
+          "max_years": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 50.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Years"
+          },
+          "require_phone": {
+            "type": "boolean",
+            "title": "Require Phone",
+            "default": true
+          },
+          "hiring_title": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Hiring Title",
+            "default": ""
+          },
+          "company_name": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Company Name",
+            "default": ""
+          },
+          "role_pitch": {
+            "type": "string",
+            "maxLength": 240,
+            "title": "Role Pitch",
+            "default": ""
+          },
+          "comp_range_text": {
+            "type": "string",
+            "title": "Comp Range Text",
+            "default": ""
+          },
+          "work_mode": {
+            "type": "string",
+            "title": "Work Mode",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "SearchFilters",
+        "description": "What we will actually ask the provider for.\n\nDeliberately provider-neutral. People Data Labs wants an\nElasticsearch query and Apollo wants flat parameters, so each adapter\nowns that translation rather than leaking it into this shape."
+      },
+      "SearchRequest": {
+        "properties": {
+          "jd_text": {
+            "type": "string",
+            "maxLength": 20000,
+            "minLength": 1,
+            "title": "Jd Text"
+          },
+          "filters": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SearchFilters"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "limit": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "default": 25
+          }
+        },
+        "type": "object",
+        "required": [
+          "jd_text"
+        ],
+        "title": "SearchRequest",
+        "description": "Paste a job description, optionally with corrected filters."
+      },
+      "SearchResponse": {
+        "properties": {
+          "search_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Search Id"
+          },
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "provider_degraded_to": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider Degraded To"
+          },
+          "extraction_method": {
+            "type": "string",
+            "enum": [
+              "llm",
+              "heuristic",
+              "manual"
+            ],
+            "title": "Extraction Method"
+          },
+          "filters": {
+            "$ref": "#/components/schemas/SearchFilters"
+          },
+          "provider_query": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Provider Query"
+          },
+          "prospects": {
+            "items": {
+              "$ref": "#/components/schemas/ProspectOut"
+            },
+            "type": "array",
+            "title": "Prospects"
+          },
+          "total_estimated": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Estimated"
+          },
+          "credits_charged": {
+            "type": "integer",
+            "title": "Credits Charged",
+            "default": 0
+          },
+          "cache_hit": {
+            "type": "boolean",
+            "title": "Cache Hit",
+            "default": false
+          },
+          "callable_count": {
+            "type": "integer",
+            "title": "Callable Count",
+            "default": 0
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "search_id",
+          "provider",
+          "extraction_method",
+          "filters"
+        ],
+        "title": "SearchResponse",
+        "description": "Everything the search screen needs, including how it was derived."
+      },
+      "TargetOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "prospect_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Prospect Id"
+          },
+          "prospect_name": {
+            "type": "string",
+            "title": "Prospect Name",
+            "default": ""
+          },
+          "mobile_masked": {
+            "type": "string",
+            "title": "Mobile Masked",
+            "default": ""
+          },
+          "allowlist_label": {
+            "type": "string",
+            "title": "Allowlist Label",
+            "default": ""
+          },
+          "status": {
+            "$ref": "#/components/schemas/TargetStatus"
+          },
+          "block_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Block Reason"
+          },
+          "next_attempt_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Attempt At"
+          },
+          "call_status": {
+            "type": "string",
+            "title": "Call Status",
+            "default": "NOT_STARTED"
+          },
+          "recording_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recording Url"
+          },
+          "values": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Values"
+          },
+          "raw_values": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Raw Values"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "prospect_id",
+          "status"
+        ],
+        "title": "TargetOut"
+      },
+      "TargetStatus": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "DEFERRED",
+          "CALLING",
+          "DONE",
+          "BLOCKED",
+          "FAILED"
+        ],
+        "title": "TargetStatus"
       },
       "ValidationError": {
         "properties": {

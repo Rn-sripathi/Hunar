@@ -238,6 +238,7 @@ def heuristic_filters(jd_text: str) -> SearchFilters:
         pitch += f" in {cities[0]}"
 
     return SearchFilters(
+        hiring_title=title,
         titles=[title] if title else [],
         seniorities=list(seniorities[:2]),  # type: ignore[arg-type]
         skills_required=skills[:6],
@@ -260,6 +261,8 @@ class _Extracted(BaseModel):
     across afterwards.
     """
 
+    hiring_title: str = Field(description="The role being advertised")
+    company_name: str
     titles: list[str] = Field(description="Titles these people hold today")
     excluded_titles: list[str]
     seniorities: list[str]
@@ -327,6 +330,8 @@ async def extract_filters(jd_text: str, settings: Settings) -> ExtractionResult:
 
     return ExtractionResult(
         filters=SearchFilters(
+            hiring_title=parsed.hiring_title[:200],
+            company_name=parsed.company_name[:200],
             titles=parsed.titles,
             excluded_titles=parsed.excluded_titles,
             seniorities=[s for s in parsed.seniorities if s in _VALID_SENIORITIES],  # type: ignore[misc]

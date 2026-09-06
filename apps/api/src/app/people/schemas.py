@@ -63,7 +63,15 @@ class SearchFilters(BaseModel):
     #: why the consent allowlist exists.
     require_phone: bool = True
 
-    #: Carried through to the voice agent rather than to the provider.
+    # ── carried to the voice agent, not to the provider ──────
+    #: The role being hired for. Deliberately not ``titles[0]``: those are
+    #: the titles these people hold *today*, which is usually a rung below
+    #: the opening. Saying the wrong one aloud on a cold call is both
+    #: confusing and slightly insulting.
+    hiring_title: str = Field(default="", max_length=200)
+    #: Who is hiring. A cold call that cannot name the employer is a cold
+    #: call nobody should take.
+    company_name: str = Field(default="", max_length=200)
     role_pitch: str = Field(default="", max_length=240)
     comp_range_text: str = ""
     work_mode: str = ""
@@ -104,10 +112,18 @@ class ProspectOut(_Out):
     linkedin_url: str | None = None
 
     phone_status: PhoneStatus
-    #: True only when this exact number is on the consent allowlist. The
-    #: UI shows this rather than a number, because a number we hold is not
-    #: a number we may dial.
+    #: Bound to a number on the consent allowlist. A durable fact about
+    #: this person, and the one that decides whether they can be added to
+    #: a campaign at all.
+    consented: bool = False
+    #: Consented *and* dialable this minute. A momentary fact: the same
+    #: person is callable at noon and not at midnight. Kept separate from
+    #: ``consented`` because collapsing the two makes recording a consent
+    #: look like it did nothing whenever the calling window is shut.
     callable: bool = False
+    #: True when the only obstacle is the clock, so the call is queued for
+    #: the next window rather than refused.
+    deferrable: bool = False
     #: Why not, when not. Shown in the table rather than hidden.
     not_callable_reason: str | None = None
 
@@ -209,4 +225,9 @@ class LaunchOutreachReport(BaseModel):
     #: hidden: demonstrating the gate firing is the point of having it.
     blocked: list[dict[str, str]] = Field(default_factory=list)
     deferred: int = 0
+    #: Submitted, but the response never arrived. These may be ringing.
+    #: Reported separately from launched because we genuinely do not know,
+    #: and never retried, because a duplicate is a second cold call to a
+    #: stranger. The reconciler resolves them.
+    unresolved: int = 0
     targets: list[TargetOut] = Field(default_factory=list)
