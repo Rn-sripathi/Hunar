@@ -36,7 +36,13 @@ from app.core.config import Settings
 from app.people.models import PeopleSearch, PhoneStatus, Prospect, ProspectSearchHit
 from app.people.providers import build_provider
 from app.people.providers.base import Prospect as ProviderProspect
-from app.people.providers.pdl import PdlAuthError, PdlQuotaError
+from app.people.providers.pdl import (
+    PdlAuthError,
+    PdlQueryError,
+    PdlQuotaError,
+    PdlRateLimitError,
+    PdlUnavailableError,
+)
 from app.people.schemas import ProspectOut, SearchFilters, SearchRequest, SearchResponse
 from app.people.services.consent import allowlist_for
 from app.people.services.extraction import extract_filters
@@ -304,7 +310,13 @@ async def run_search(
     try:
         try:
             page = await provider.search(filters, payload.limit)
-        except (PdlQuotaError, PdlAuthError) as exc:
+        except (
+            PdlQuotaError,
+            PdlAuthError,
+            PdlRateLimitError,
+            PdlQueryError,
+            PdlUnavailableError,
+        ) as exc:
             # Out of credits or a bad key. The screen still has to work, so
             # the fixture provider serves the results and the response says
             # so rather than passing sample data off as live.

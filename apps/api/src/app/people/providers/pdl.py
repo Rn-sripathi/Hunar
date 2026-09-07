@@ -28,7 +28,14 @@ from app.people.schemas import SearchFilters
 
 logger = structlog.get_logger(__name__)
 
-__all__ = ["PdlProvider"]
+__all__ = [
+    "PdlAuthError",
+    "PdlProvider",
+    "PdlQueryError",
+    "PdlQuotaError",
+    "PdlRateLimitError",
+    "PdlUnavailableError",
+]
 
 _PRODUCTION_URL = "https://api.peopledatalabs.com/v5/person/search"
 #: Free, charges no credits, returns artificial data. The safety net when
@@ -99,14 +106,20 @@ class PdlProvider:
             must.append({"terms": {"location_locality": sorted(set(localities))}})
 
         if filters.titles:
+            # A nested bool whose only clause is `should` already requires
+            # one of them to match, which is exactly what we want. The
+            # explicit `minimum_should_match` that would normally say so
+            # is rejected outright: "Query clause [minimum_should_match]
+            # not allowed or invalid field name." Verified against the
+            # live API that both forms return the same result count, so
+            # dropping it changes nothing but the acceptance.
             must.append(
                 {
                     "bool": {
-                        "minimum_should_match": 1,
                         "should": [
                             {"match_phrase": {"job_title": title.lower()}}
                             for title in filters.titles
-                        ],
+                        ]
                     }
                 }
             )
@@ -153,25 +166,47 @@ class PdlProvider:
         payload = self.build_query(filters, limit)
         url = _SANDBOX_URL if self._sandbox else _PRODUCTION_URL
 
-        response = await self._http.post(url, json=payload)
+        try:
+            response = await self._http.post(url, json=payload)
+        except httpx.HTTPError as exc:
+            raise PdlUnavailableError(f"could not reach People Data Labs: {exc}") from exc
 
         if response.status_code == 402:
             # Out of credits. The caller degrades to another provider
             # rather than showing an empty screen.
             raise PdlQuotaError("People Data Labs credits are exhausted")
-        if response.status_code == 401:
+        if response.status_code in (401, 403):
             raise PdlAuthError("The People Data Labs key was rejected")
-        response.raise_for_status()
+        if response.status_code == 429:
+            # Free plans allow only a handful of searches a minute. Its
+            # own class because the remedy is to wait, not to switch
+            # provider or to go looking for a bad key.
+            raise PdlRateLimitError(
+                "People Data Labs is rate limiting this key. Free plans allow only "
+                "a few searches per minute; wait a moment and try again."
+            )
+        if response.status_code >= 400:
+            # This previously escaped as a raw httpx error, which reached
+            # the UI as an unhandled exception rather than something a
+            # person could act on. PDL explains itself in the body, so
+            # repeat what it said.
+            raise PdlQueryError(_explain(response))
 
         body = response.json()
         records = body.get("data") or []
 
+        # PDL reports what it actually charged. Counting records guesses,
+        # and guessed wrong whenever a query matched nothing at all.
+        spent = _header_int(response, "x-call-credits-spent")
         return SearchPage(
             prospects=[self._to_prospect(record) for record in records],
             total_estimated=body.get("total"),
-            # The sandbox is free; production bills one credit per record.
-            credits_charged=0 if self._sandbox else len(records),
-            credits_remaining=_header_int(response, "x-ratelimit-remaining"),
+            credits_charged=0 if self._sandbox else (spent if spent is not None else len(records)),
+            # `x-ratelimit-remaining` is a JSON object such as
+            # {"minute": 6}, so reading it as an integer always produced
+            # None. The monthly allowance is the number an operator
+            # actually cares about, and it has its own header.
+            credits_remaining=_header_int(response, "x-totallimit-remaining"),
             provider_query=payload,
         )
 
@@ -194,8 +229,8 @@ class PdlProvider:
             phone_status = PhoneStatus.UNKNOWN
             phone_e164 = None
 
-        full_name = str(record.get("full_name") or "Unknown").strip()
-        linkedin = record.get("linkedin_url")
+        full_name = _text(record.get("full_name")) or "Unknown"
+        linkedin = _text(record.get("linkedin_url"))
         key, confidence = dedupe_key_for(
             linkedin_url=linkedin,
             phone_e164=phone_e164,
@@ -211,17 +246,21 @@ class PdlProvider:
             dedupe_key=key,
             dedupe_confidence=confidence,
             full_name=full_name,
-            headline=record.get("headline") or record.get("job_title"),
-            job_title=record.get("job_title"),
-            seniority=str(levels[0]) if levels else None,
-            company_name=record.get("job_company_name"),
-            company_size_band=record.get("job_company_size"),
-            industry=record.get("job_company_industry"),
+            headline=_text(record.get("headline")) or _text(record.get("job_title")),
+            job_title=_text(record.get("job_title")),
+            seniority=_text(levels[0]) if levels else None,
+            company_name=_text(record.get("job_company_name")),
+            company_size_band=_text(record.get("job_company_size")),
+            industry=_text(record.get("job_company_industry")),
             years_experience=_years(record),
-            skills=[str(s) for s in (record.get("skills") or [])][:20],
-            location_city=record.get("location_locality"),
-            location_region=record.get("location_region"),
-            location_country=record.get("location_country"),
+            skills=[s for s in (record.get("skills") or []) if isinstance(s, str)][:20],
+            # Granular location is masked to `true` on free plans exactly
+            # as the contact fields are, so this is often unknown rather
+            # than absent. Without `_text` the literal string "True"
+            # appears in the city column.
+            location_city=_text(record.get("location_locality")),
+            location_region=_text(record.get("location_region")),
+            location_country=_text(record.get("location_country")),
             linkedin_url=linkedin,
             phone_status=phone_status,
             phone_e164=phone_e164,
@@ -244,6 +283,41 @@ class PdlQuotaError(RuntimeError):
 
 class PdlAuthError(RuntimeError):
     """The key is wrong, missing or revoked."""
+
+
+class PdlRateLimitError(RuntimeError):
+    """Too many requests. The remedy is to wait, not to switch provider."""
+
+
+class PdlQueryError(RuntimeError):
+    """PDL refused the query itself, and said why."""
+
+
+class PdlUnavailableError(RuntimeError):
+    """The network failed before PDL could answer."""
+
+
+def _explain(response: httpx.Response) -> str:
+    """Recover PDL's own account of what was wrong with the request."""
+    try:
+        error = response.json().get("error") or {}
+    except ValueError:
+        return f"People Data Labs returned HTTP {response.status_code}"
+    message = error.get("message") or response.text[:200]
+    return f"People Data Labs rejected the query: {message}"
+
+
+def _text(value: Any) -> str | None:
+    """Return a real string, or None.
+
+    Free plans mask contact and granular-location fields to the boolean
+    ``true`` rather than omitting them. Passing that through would put
+    the word "True" in a city column and, worse, make a value we do not
+    have look like one we do.
+    """
+    if isinstance(value, str):
+        return value.strip() or None
+    return None
 
 
 def _header_int(response: httpx.Response, name: str) -> int | None:
