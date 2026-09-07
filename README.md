@@ -240,7 +240,7 @@ them, and saves every response as a fixture.
 ## Tests
 
 ```bash
-uv run pytest                # 411 tests
+uv run pytest                # 498 tests
 uv run ruff check . && uv run mypy packages/hunar-sdk/src apps/api/src scripts
 cd apps/web && npm run typecheck && npm run lint && npm run build
 ```
@@ -274,8 +274,35 @@ The Hunar key is also the HMAC secret for inbound webhooks, so a browser-visible
 copy would let anyone forge webhooks that mutate call records. It therefore lives
 only in the backend process. `.gitignore` was written before `git init`, so no
 credential has ever entered this repository's history. Logs redact keys,
-signatures and phone numbers by processor rather than at each call site. Phone
-numbers are masked to their last four digits everywhere they are displayed.
+signatures and phone numbers by processor rather than at each call site.
+
+**A full phone number never leaves the server.** Only the masked form is in any
+response. That is worth stating precisely, because the first version sent both
+and let the browser choose which to render — masking is decorative while the
+unmasked value travels beside it, and a single misconfiguration then leaks
+every number. The field is absent from the API rather than merely unused by the
+UI.
+
+**The deployment is behind a shared password**, held as a signed HttpOnly cookie
+and compared in constant time. Health checks stay open, or the platform declares
+the service dead. The API schema stays open deliberately: reading it is a feature
+for a reviewer and it carries no data. Webhooks stay open because Hunar cannot
+log in, and that path is authenticated by an HMAC over the raw request body,
+which is stronger than a password.
+
+This is a gate, not authentication. There are no accounts and no record of who
+did what — see the limitations below.
+
+Two ordering details are load-bearing rather than stylistic, and both are pinned
+by tests because neither fails visibly on the server:
+
+- CORS is the **outermost** middleware. Anything able to reject a request has to
+  sit inside it, or the rejection carries no `Access-Control-Allow-Origin` header
+  and the browser discards a response it was not permitted to read. A `401`
+  telling the frontend to ask for a password then becomes an unexplained network
+  failure.
+- The webhook route reads the raw body **before** verifying, and no middleware
+  may rewrite it, because the signature covers the exact bytes received.
 
 ## Put the database near its users
 
@@ -305,8 +332,10 @@ optimistic updates, but hiding latency is not the same as not having it.
   and recording returned. The cold-outreach script has been read aloud only in
   preview. Prompt quality is genuinely knowable only from real calls, and that
   one is still owed.
-- **No authentication.** A shared demo password gates the deployment. Real use
-  needs per-recruiter accounts and an audit trail of who rejected whom.
+- **No authentication.** The shared password stops a public URL being readable;
+  it does not identify anyone. Real use needs per-recruiter accounts and an audit
+  trail of who rejected whom, because a screening decision is about a person and
+  should be attributable.
 - **Recordings are proxied, not stored.** Provider URLs are likely to expire
   with the key.
 - Retry policy, calling-hours guardrails and per-candidate language are
