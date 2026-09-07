@@ -51,11 +51,19 @@ services:
         sync: false
       - key: SESSION_SECRET
         generateValue: true
-      - key: ANTHROPIC_API_KEY
+      # Reads job descriptions into forms and search filters. Without it
+      # both extractors fall back to keyword matching and say so in the
+      # UI, so a missing key degrades the product rather than breaking it.
+      - key: OPENAI_API_KEY
         sync: false
-      - key: PDL_API_KEY
-        sync: false
+
+      # Only numbers listed here can ever be dialled by the sourcing app.
+      # Left unset, nothing is callable, which is the correct default for
+      # a public deployment holding broker-sourced contact data.
       - key: DEMO_ALLOWLIST
+        sync: false
+
+      - key: PDL_API_KEY
         sync: false
 
       # Starts live and falls back to recorded data when the key expires,
@@ -73,5 +81,11 @@ services:
       - key: CORS_ORIGINS
         sync: false
 
+      # Defaults to the built-in sample set so the sourcing screens work
+      # with no provider account at all. Switch to `pdl` once PDL_API_KEY
+      # is set; the two switches are independent of HUNAR_MODE on purpose.
       - key: PEOPLE_PROVIDER
         value: fixture
+
+      - key: LLM_MODEL
+        value: gpt-4o
