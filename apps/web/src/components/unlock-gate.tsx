@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Lock } from "lucide-react";
+import { Loader2, Lock, PlugZap } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -43,8 +43,6 @@ export function UnlockGate({ children }: { children: React.ReactNode }) {
     },
   });
 
-  const locked = error instanceof ApiError && error.code === "locked";
-
   if (isPending) {
     return (
       <div className="flex min-h-64 items-center justify-center">
@@ -53,8 +51,55 @@ export function UnlockGate({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!locked) return <>{children}</>;
-  void data;
+  // Fail closed. The app is rendered only on a definite success, never
+  // merely on the absence of a recognised failure.
+  //
+  // The first version of this asked "did the API say `locked`?" and
+  // rendered the app whenever the answer was no. That is wrong in the
+  // one case that matters: a request blocked by CORS never becomes a 401
+  // in JavaScript at all, because the browser refuses it before any
+  // response body is readable. `fetch` simply rejects, the code saw
+  // `network_error` rather than `locked`, concluded the deployment was
+  // not protected, and rendered every screen — each then failing on its
+  // own with no explanation and no password prompt in sight.
+  if (data) return <>{children}</>;
+
+  const unreachable =
+    error instanceof ApiError && error.code === "network_error";
+  if (unreachable) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center px-4">
+        <Card className="w-full max-w-md gap-0 p-6">
+          <span className="flex size-9 items-center justify-center rounded-md bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300">
+            <PlugZap className="size-4" />
+          </span>
+          <h1 className="mt-4 text-lg font-semibold tracking-tight">
+            Cannot reach the API
+          </h1>
+          <p className="text-muted-foreground mt-1.5 text-sm leading-relaxed">
+            The request was refused before any reply could be read, which almost
+            always means the backend does not allow this site&rsquo;s origin.
+            Set <code className="text-xs">CORS_ORIGINS</code> on the API to{" "}
+            <code className="text-xs">
+              {typeof window === "undefined" ? "" : window.location.origin}
+            </code>{" "}
+            and restart it.
+          </p>
+          <p className="text-muted-foreground mt-2 text-xs leading-relaxed">
+            A browser caches a refused preflight for ten minutes, so once it is
+            fixed, reload in a private window rather than waiting.
+          </p>
+          <Button
+            variant="outline"
+            className="mt-4"
+            onClick={() => queryClient.resetQueries()}
+          >
+            Try again
+          </Button>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-[60vh] items-center justify-center px-4">
