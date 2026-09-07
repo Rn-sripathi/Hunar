@@ -13,7 +13,7 @@ import uuid
 from datetime import datetime
 from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app.people.models import PhoneStatus, TargetStatus
 
@@ -76,6 +76,28 @@ class SearchFilters(BaseModel):
     comp_range_text: str = ""
     work_mode: str = ""
 
+    def is_empty(self) -> bool:
+        """Whether these filters would narrow nothing.
+
+        Country alone does not count: every record has one, so a search
+        filtered only by country is a search for everybody. Neither do
+        the fields carried to the voice agent rather than the provider —
+        a role pitch is not a search term.
+        """
+        return not any(
+            (
+                self.titles,
+                self.skills_required,
+                self.skills_nice,
+                self.cities,
+                self.industries,
+                self.seniorities,
+                self.company_size_bands,
+                self.min_years is not None,
+                self.max_years is not None,
+            )
+        )
+
     @field_validator("titles", "skills_required", "skills_nice", "cities", "industries")
     @classmethod
     def _tidy(cls, value: list[str]) -> list[str]:
@@ -88,13 +110,38 @@ class SearchFilters(BaseModel):
 
 
 class SearchRequest(BaseModel):
-    """Paste a job description, optionally with corrected filters."""
+    """Search either from a job description, from filters, or from both.
 
-    jd_text: str = Field(min_length=1, max_length=20_000)
-    #: Present on the second call, once the recruiter has edited what the
-    #: extraction proposed. Absent on the first, which asks us to interpret.
+    Both fields are optional individually because there are two honest
+    ways to start. A recruiter with a description wants it read for them;
+    a recruiter who already knows exactly who they are looking for should
+    not have to write a description to say so. Requiring ``jd_text``
+    turned the second route into a form you had to trick.
+
+    At least one of them must be present, since a search with neither is
+    a request to return the whole database.
+    """
+
+    jd_text: str = Field(default="", max_length=20_000)
+    #: Present once the recruiter has edited what extraction proposed, or
+    #: on its own when they skipped extraction entirely. Absent only on
+    #: the first call from a pasted description, which asks us to interpret.
     filters: SearchFilters | None = None
     limit: Annotated[int, Field(ge=1, le=100)] = 25
+
+    @model_validator(mode="after")
+    def _needs_something_to_go_on(self) -> SearchRequest:
+        if not self.jd_text.strip() and self.filters is None:
+            raise ValueError(
+                "Provide a job description or some filters. A search with neither "
+                "would return an arbitrary slice of the whole database."
+            )
+        if self.filters is not None and self.filters.is_empty():
+            raise ValueError(
+                "Those filters are empty, so the search has nothing to narrow on. "
+                "Add at least a title, a city, a skill or a seniority."
+            )
+        return self
 
 
 class ProspectOut(_Out):

@@ -3671,8 +3671,8 @@
           "jd_text": {
             "type": "string",
             "maxLength": 20000,
-            "minLength": 1,
-            "title": "Jd Text"
+            "title": "Jd Text",
+            "default": ""
           },
           "filters": {
             "anyOf": [
@@ -3693,11 +3693,8 @@
           }
         },
         "type": "object",
-        "required": [
-          "jd_text"
-        ],
         "title": "SearchRequest",
-        "description": "Paste a job description, optionally with corrected filters."
+        "description": "Search either from a job description, from filters, or from both.\n\nBoth fields are optional individually because there are two honest\nways to start. A recruiter with a description wants it read for them;\na recruiter who already knows exactly who they are looking for should\nnot have to write a description to say so. Requiring ``jd_text``\nturned the second route into a form you had to trick.\n\nAt least one of them must be present, since a search with neither is\na request to return the whole database."
       },
       "SearchResponse": {
         "properties": {

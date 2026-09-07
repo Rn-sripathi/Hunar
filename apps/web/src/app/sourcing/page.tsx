@@ -9,6 +9,7 @@ import {
   PhoneCall,
   Search,
   ShieldCheck,
+  SlidersHorizontal,
   TriangleAlert,
   Users,
   Wand2,
@@ -69,10 +70,22 @@ const EMPTY_FILTERS: SearchFilters = {
  * are sourced is more useful than saying it in a README.
  */
 function PolicyCard() {
+  // Refetched on a timer because two things here go stale on their own.
+  // The calling window closes at 19:00 whether or not anyone reloads, and
+  // an operator who edits the environment's allowlist should see it
+  // without restarting the browser. A minute is frequent enough that the
+  // banner is never meaningfully wrong and cheap enough to ignore: this
+  // endpoint reads settings and one small table, and spends no provider
+  // credits.
+  //
+  // Search results deliberately do *not* poll. Refreshing them means
+  // re-running the provider query, and a background timer that quietly
+  // spends a recruiter's credits would be indefensible.
   const { data: policy } = useQuery({
     queryKey: queryKeys.policy,
     queryFn: api.people.policy,
-    staleTime: 60_000,
+    refetchInterval: 60_000,
+    refetchIntervalInBackground: false,
   });
 
   if (!policy) return null;
@@ -153,7 +166,8 @@ export default function SourcingPage() {
   });
 
   const search = useMutation({
-    mutationFn: () => api.people.search({ jd_text: jdText, filters, limit }),
+    mutationFn: () =>
+      api.people.search({ jd_text: jdText.trim(), filters, limit }),
     onSuccess: (response) => {
       const found = response.prospects ?? [];
       setResults(response);
@@ -197,6 +211,21 @@ export default function SourcingPage() {
 
   const canExtract = jdText.trim().length >= 40 && !extract.isPending;
   const busy = search.isPending || createCampaign.isPending;
+
+  // Mirrors the server's own rule, so the button explains itself instead
+  // of the request coming back as a validation error. Country is excluded
+  // on purpose: every record has one, so filtering only by it is a search
+  // for everybody.
+  const filtersAreEmpty =
+    filters !== null &&
+    !filters.titles?.length &&
+    !filters.skills_required?.length &&
+    !filters.skills_nice?.length &&
+    !filters.cities?.length &&
+    !filters.industries?.length &&
+    !filters.seniorities?.length &&
+    filters.min_years === null &&
+    filters.max_years === null;
 
   return (
     <div className="space-y-6">
@@ -265,13 +294,23 @@ export default function SourcingPage() {
                 )}
               </Button>
 
-              {!filters && jdText.trim().length > 0 && (
+              {/* Always offered, never gated on having typed a description.
+                  Requiring text in the box before this appeared made
+                  manual entry a fallback from the thing it replaces, and
+                  a recruiter who already knows who they want should not
+                  have to write a job advert to say so. */}
+              {!filters && (
                 <Button
                   type="button"
-                  variant="ghost"
-                  onClick={() => setFilters(EMPTY_FILTERS)}
+                  variant="outline"
+                  onClick={() => {
+                    setFilters(EMPTY_FILTERS);
+                    setMethod("manual");
+                    setNote(null);
+                  }}
                 >
-                  Set the filters myself
+                  <SlidersHorizontal className="size-4" />
+                  Skip this, I&rsquo;ll set the filters
                 </Button>
               )}
 
@@ -304,11 +343,14 @@ export default function SourcingPage() {
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <h2 className="text-[15px] font-semibold">
-                Check what will be searched
+                {method === "manual"
+                  ? "Search filters"
+                  : "Check what will be searched"}
               </h2>
               <p className="text-muted-foreground mt-0.5 text-sm">
-                Turning prose into filters is a guess however it is made. This
-                is where a wrong guess is still free to fix.
+                {method === "manual"
+                  ? "Add at least a title, a city, a skill or a seniority. The more specific, the fewer people someone has to read through."
+                  : "Turning prose into filters is a guess however it is made. This is where a wrong guess is still free to fix."}
               </p>
             </div>
             <div className="flex items-end gap-2">
@@ -333,7 +375,15 @@ export default function SourcingPage() {
                   className="mt-1 h-9 w-20 text-sm"
                 />
               </div>
-              <Button onClick={() => search.mutate()} disabled={busy}>
+              <Button
+                onClick={() => search.mutate()}
+                disabled={busy || filtersAreEmpty}
+                title={
+                  filtersAreEmpty
+                    ? "Add a title, city, skill or seniority first"
+                    : undefined
+                }
+              >
                 {search.isPending ? (
                   <>
                     <Loader2 className="size-4 animate-spin" />

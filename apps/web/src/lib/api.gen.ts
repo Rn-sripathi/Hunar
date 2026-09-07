@@ -1601,10 +1601,22 @@ export interface components {
     };
     /**
      * SearchRequest
-     * @description Paste a job description, optionally with corrected filters.
+     * @description Search either from a job description, from filters, or from both.
+     *
+     *     Both fields are optional individually because there are two honest
+     *     ways to start. A recruiter with a description wants it read for them;
+     *     a recruiter who already knows exactly who they are looking for should
+     *     not have to write a description to say so. Requiring ``jd_text``
+     *     turned the second route into a form you had to trick.
+     *
+     *     At least one of them must be present, since a search with neither is
+     *     a request to return the whole database.
      */
     SearchRequest: {
-      /** Jd Text */
+      /**
+       * Jd Text
+       * @default
+       */
       jd_text: string;
       filters?: components["schemas"]["SearchFilters"] | null;
       /**
