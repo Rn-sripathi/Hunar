@@ -22,9 +22,21 @@ in [docs/attendance-without-apps.md](docs/attendance-without-apps.md).
 
 | | |
 |---|---|
-| **Live app** | _to be filled in on deploy_ |
-| **API docs** | _to be filled in on deploy_ `/docs` |
-| **Source** | this repository |
+| **Live app** | <https://hunar-aryan-s-projectsss1.vercel.app> |
+| **Password** | `ledger-copper-tundra-20` |
+| **API docs** | <https://hunar-rvf8.onrender.com/docs> |
+| **Source** | <https://github.com/Rn-sripathi/Hunar> |
+
+The demo is password protected because its database holds real
+candidates' names and phone numbers. The API schema at `/docs` is
+deliberately open: it carries no data and reading it is a feature for
+anyone reviewing this.
+
+Outbound calling is switched **off** on the deployed instance:
+`DEMO_ALLOWLIST` is empty, so the sourcing app will source people and
+refuse to phone any of them. That is the intended posture for a public
+URL, and the refusal is shown against each person with its reason rather
+than hidden.
 
 ![Results dashboard](docs/screenshots/results.png)
 

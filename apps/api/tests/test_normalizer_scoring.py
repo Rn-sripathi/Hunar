@@ -47,6 +47,41 @@ def outq(
     )
 
 
+class TestAbsenceIsNotAnAnswer:
+    """Values that mean "we do not know" must become null, not text.
+
+    A real screening call returned "NOT AVAILABLE" for its summary, and
+    the dashboard rendered that as the candidate's answer. Nobody said it;
+    it is the extractor's way of saying the field was never filled, and
+    showing it as content is a small lie about what happened on the call.
+    """
+
+    @pytest.mark.parametrize(
+        "raw",
+        [
+            "NOT AVAILABLE",
+            "not available",
+            "  Not Available  ",
+            "unavailable",
+            "not specified",
+            "not stated",
+            "N/A",
+            "not discussed",
+        ],
+    )
+    def test_absence_markers_become_null(self, raw: str) -> None:
+        assert coerce_value(raw, AnswerType.STRING) is None
+
+    def test_a_real_answer_containing_the_word_survives(self) -> None:
+        """Only the whole value counts, never a substring.
+
+        "The night shift is not available to me" is an answer, and
+        matching on a substring would delete it.
+        """
+        answer = "The night shift is not available to me"
+        assert coerce_value(answer, AnswerType.STRING) == answer
+
+
 class TestBooleanCoercion:
     @pytest.mark.parametrize(
         "raw",

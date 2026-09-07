@@ -476,154 +476,309 @@ export function ResultsPanel({ jobId }: { jobId: string }) {
             No candidates match this filter.
           </p>
         ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader className="bg-muted/50">
-                <TableRow>
-                  <TableHead className="bg-muted/50 sticky left-0 min-w-44">
-                    Candidate
-                  </TableHead>
-                  <TableHead className="min-w-28">Status</TableHead>
-                  <TableHead className="min-w-32">Score</TableHead>
-                  {columns.map((column) => (
-                    <TableHead
-                      key={column.key}
-                      className="min-w-32 whitespace-nowrap"
-                    >
-                      {column.label}
-                      {column.is_knockout && (
-                        <span
-                          className="ml-1 text-red-600 dark:text-red-400"
-                          title="Required"
-                        >
-                          *
-                        </span>
-                      )}
-                    </TableHead>
-                  ))}
-                  {/* Pinned right: with a dozen answer columns the decision
-                      buttons would otherwise sit off-screen, hiding the one
-                      action a recruiter came to this table to take. */}
-                  <TableHead className="bg-muted/50 sticky right-0 w-32 border-l text-right">
-                    Decision
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-
-              <TableBody>
-                {rows.map((row) => (
-                  <TableRow
-                    key={row.candidate_id}
-                    className={cn(
-                      "cursor-pointer",
-                      row.disqualified && "opacity-70",
-                      row.decision === "SHORTLISTED" &&
-                        "bg-emerald-50/50 dark:bg-emerald-950/20",
-                    )}
+          <>
+            {/* Phones get cards, not a thirteen-column table.
+                On a 390px screen the table is 1905px wide, so a candidate's
+                name and status are visible and every answer the call
+                actually produced is off to the right inside a nested
+                scroll container. Cards put the answers underneath the
+                person, which is the order someone reads them in anyway,
+                and keep the shortlist and reject actions reachable with a
+                thumb. Wide screens keep the table, where comparing people
+                across a row is the whole point. */}
+            <div className="divide-y sm:hidden">
+              {rows.map((row) => (
+                <div
+                  key={row.candidate_id}
+                  className={cn(
+                    "p-4",
+                    row.disqualified && "opacity-80",
+                    row.decision === "SHORTLISTED" &&
+                      "bg-emerald-50/50 dark:bg-emerald-950/20",
+                  )}
+                >
+                  <button
+                    type="button"
+                    className="w-full text-left"
                     onClick={() => setSelected(row)}
                   >
-                    <TableCell className="bg-background sticky left-0">
-                      <div className="font-medium">{row.candidate_name}</div>
-                      <div className="text-muted-foreground font-mono text-[11px]">
-                        {row.mobile_masked}
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="text-sm font-medium">
+                          {row.candidate_name}
+                        </div>
+                        <div className="text-muted-foreground font-mono text-[11px]">
+                          {row.mobile_masked}
+                        </div>
                       </div>
-                    </TableCell>
-
-                    <TableCell>
                       <StatusBadge status={row.status} />
-                    </TableCell>
+                    </div>
 
-                    <TableCell>
+                    <div className="mt-2.5 max-w-48">
                       <ScorePill
                         score={row.score}
                         disqualified={row.disqualified}
                         reason={row.disqualified_reason}
                       />
-                    </TableCell>
+                    </div>
 
-                    {columns.map((column) => (
-                      <TableCell
-                        key={column.key}
-                        className="text-sm"
-                        title={
-                          row.raw_values?.[column.key]
-                            ? `Said: ${String(row.raw_values[column.key])}`
-                            : undefined
+                    {row.disqualified && row.disqualified_reason && (
+                      <p className="mt-1.5 text-[11px] leading-relaxed text-red-700 dark:text-red-400">
+                        {row.disqualified_reason}
+                      </p>
+                    )}
+
+                    {/* Only answers that exist. A column per question makes
+                        sense in a table; a row of dashes does not. */}
+                    {columns.some(
+                      (column) =>
+                        row.values?.[column.key] !== null &&
+                        row.values?.[column.key] !== undefined &&
+                        row.values?.[column.key] !== "",
+                    ) && (
+                      <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5">
+                        {columns.map((column) => {
+                          const value = row.values?.[column.key];
+                          if (
+                            value === null ||
+                            value === undefined ||
+                            value === ""
+                          )
+                            return null;
+                          return (
+                            <div
+                              key={column.key}
+                              className="col-span-2 flex gap-3"
+                            >
+                              <dt className="text-muted-foreground w-32 shrink-0 text-xs">
+                                {column.label}
+                              </dt>
+                              <dd className="min-w-0 flex-1 text-xs">
+                                <AnswerCell value={value} field={column} />
+                                {/* The literal words, shown rather than
+                                    hovered: a touch screen has no hover. */}
+                                {row.raw_values?.[column.key] !== undefined &&
+                                  String(row.raw_values[column.key]) !==
+                                    String(value) && (
+                                    <span className="text-muted-foreground block text-[11px] italic">
+                                      &ldquo;
+                                      {String(row.raw_values[column.key])}
+                                      &rdquo;
+                                    </span>
+                                  )}
+                              </dd>
+                            </div>
+                          );
+                        })}
+                      </dl>
+                    )}
+                  </button>
+
+                  {row.status === "COMPLETED" && (
+                    <div className="mt-3 flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant={
+                          row.decision === "SHORTLISTED" ? "default" : "outline"
+                        }
+                        size="sm"
+                        className="flex-1"
+                        onClick={() =>
+                          decide.mutate({
+                            candidateId: row.candidate_id,
+                            decision: "SHORTLISTED",
+                          })
                         }
                       >
-                        <AnswerCell
-                          value={row.values?.[column.key]}
-                          field={column}
+                        <ThumbsUp className="size-3.5" />
+                        Shortlist
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={
+                          row.decision === "REJECTED" ? "secondary" : "outline"
+                        }
+                        size="sm"
+                        className="flex-1"
+                        onClick={() =>
+                          decide.mutate({
+                            candidateId: row.candidate_id,
+                            decision: "REJECTED",
+                          })
+                        }
+                      >
+                        <ThumbsDown className="size-3.5" />
+                        Set aside
+                      </Button>
+                      {row.recording_url && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          className="size-9 shrink-0"
+                          aria-label={`Play the call with ${row.candidate_name}`}
+                          onClick={() => setSelected(row)}
+                        >
+                          <Play className="size-3.5" />
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div className="hidden overflow-x-auto sm:block">
+              <Table>
+                <TableHeader className="bg-muted/50">
+                  <TableRow>
+                    <TableHead className="bg-muted/50 sticky left-0 min-w-44">
+                      Candidate
+                    </TableHead>
+                    <TableHead className="min-w-28">Status</TableHead>
+                    <TableHead className="min-w-32">Score</TableHead>
+                    {columns.map((column) => (
+                      <TableHead
+                        key={column.key}
+                        className="min-w-32 whitespace-nowrap"
+                      >
+                        {column.label}
+                        {column.is_knockout && (
+                          <span
+                            className="ml-1 text-red-600 dark:text-red-400"
+                            title="Required"
+                          >
+                            *
+                          </span>
+                        )}
+                      </TableHead>
+                    ))}
+                    {/* Pinned right: with a dozen answer columns the decision
+                      buttons would otherwise sit off-screen, hiding the one
+                      action a recruiter came to this table to take. */}
+                    <TableHead className="bg-muted/50 sticky right-0 w-32 border-l text-right">
+                      Decision
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+
+                <TableBody>
+                  {rows.map((row) => (
+                    <TableRow
+                      key={row.candidate_id}
+                      className={cn(
+                        "cursor-pointer",
+                        row.disqualified && "opacity-70",
+                        row.decision === "SHORTLISTED" &&
+                          "bg-emerald-50/50 dark:bg-emerald-950/20",
+                      )}
+                      onClick={() => setSelected(row)}
+                    >
+                      <TableCell className="bg-background sticky left-0">
+                        <div className="font-medium">{row.candidate_name}</div>
+                        <div className="text-muted-foreground font-mono text-[11px]">
+                          {row.mobile_masked}
+                        </div>
+                      </TableCell>
+
+                      <TableCell>
+                        <StatusBadge status={row.status} />
+                      </TableCell>
+
+                      <TableCell>
+                        <ScorePill
+                          score={row.score}
+                          disqualified={row.disqualified}
+                          reason={row.disqualified_reason}
                         />
                       </TableCell>
-                    ))}
 
-                    <TableCell
-                      className="bg-background sticky right-0 border-l text-right"
-                      onClick={(event) => event.stopPropagation()}
-                    >
-                      {row.status === "COMPLETED" ? (
-                        <div className="flex items-center justify-end gap-1">
-                          <Button
-                            type="button"
-                            variant={
-                              row.decision === "SHORTLISTED"
-                                ? "default"
-                                : "ghost"
-                            }
-                            size="icon"
-                            className="size-8"
-                            aria-label={`Shortlist ${row.candidate_name}`}
-                            onClick={() =>
-                              decide.mutate({
-                                candidateId: row.candidate_id,
-                                decision: "SHORTLISTED",
-                              })
-                            }
-                          >
-                            <ThumbsUp className="size-3.5" />
-                          </Button>
-                          <Button
-                            type="button"
-                            variant={
-                              row.decision === "REJECTED"
-                                ? "secondary"
-                                : "ghost"
-                            }
-                            size="icon"
-                            className="size-8"
-                            aria-label={`Reject ${row.candidate_name}`}
-                            onClick={() =>
-                              decide.mutate({
-                                candidateId: row.candidate_id,
-                                decision: "REJECTED",
-                              })
-                            }
-                          >
-                            <ThumbsDown className="size-3.5" />
-                          </Button>
-                          {row.recording_url && (
+                      {columns.map((column) => (
+                        <TableCell
+                          key={column.key}
+                          className="text-sm"
+                          title={
+                            row.raw_values?.[column.key]
+                              ? `Said: ${String(row.raw_values[column.key])}`
+                              : undefined
+                          }
+                        >
+                          <AnswerCell
+                            value={row.values?.[column.key]}
+                            field={column}
+                          />
+                        </TableCell>
+                      ))}
+
+                      <TableCell
+                        className="bg-background sticky right-0 border-l text-right"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        {row.status === "COMPLETED" ? (
+                          <div className="flex items-center justify-end gap-1">
                             <Button
                               type="button"
-                              variant="ghost"
+                              variant={
+                                row.decision === "SHORTLISTED"
+                                  ? "default"
+                                  : "ghost"
+                              }
                               size="icon"
                               className="size-8"
-                              aria-label={`Play the call with ${row.candidate_name}`}
-                              onClick={() => setSelected(row)}
+                              aria-label={`Shortlist ${row.candidate_name}`}
+                              onClick={() =>
+                                decide.mutate({
+                                  candidateId: row.candidate_id,
+                                  decision: "SHORTLISTED",
+                                })
+                              }
                             >
-                              <Play className="size-3.5" />
+                              <ThumbsUp className="size-3.5" />
                             </Button>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground text-xs">—</span>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                            <Button
+                              type="button"
+                              variant={
+                                row.decision === "REJECTED"
+                                  ? "secondary"
+                                  : "ghost"
+                              }
+                              size="icon"
+                              className="size-8"
+                              aria-label={`Reject ${row.candidate_name}`}
+                              onClick={() =>
+                                decide.mutate({
+                                  candidateId: row.candidate_id,
+                                  decision: "REJECTED",
+                                })
+                              }
+                            >
+                              <ThumbsDown className="size-3.5" />
+                            </Button>
+                            {row.recording_url && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="size-8"
+                                aria-label={`Play the call with ${row.candidate_name}`}
+                                onClick={() => setSelected(row)}
+                              >
+                                <Play className="size-3.5" />
+                              </Button>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">
+                            —
+                          </span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </>
         )}
       </Card>
 
