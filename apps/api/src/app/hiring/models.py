@@ -100,6 +100,19 @@ class Job(UUIDMixin, TimestampMixin, Base):
     hunar_agent_id: Mapped[uuid.UUID | None] = mapped_column(nullable=True, index=True)
     hunar_agent_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
     agent_synced_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    #: Hash of the payload the live agent was created from.
+    #:
+    #: Exists because an agent at Hunar is created once and then never
+    #: looked at again. When the way we generate prompts changes — as it
+    #: did when the persona name started following the voice — every
+    #: existing agent silently keeps the old wording forever, and the
+    #: only symptom is a candidate hearing the wrong thing on a call
+    #: nobody is listening to.
+    #:
+    #: Comparing this to a freshly computed hash makes that drift
+    #: detectable without a network round trip. NULL means "created
+    #: before this existed", which correctly reads as drifted.
+    agent_fingerprint: Mapped[str | None] = mapped_column(String(64), nullable=True)
 
     #: Stored so the create-job screen can show exactly what the agent was
     #: told before a single call is placed. Making the translation from a

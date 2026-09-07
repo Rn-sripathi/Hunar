@@ -12,6 +12,7 @@ under.
 
 from __future__ import annotations
 
+import hashlib
 import uuid
 from datetime import UTC, datetime
 
@@ -38,7 +39,7 @@ from app.hiring.services.prompt_builder import (
     build_field_spec,
     build_preview,
 )
-from hunar_sdk import Agent, AgentCreate, HunarClient, HunarError
+from hunar_sdk import Agent, AgentCreate, AgentUpdate, HunarClient, HunarError
 
 logger = structlog.get_logger(__name__)
 
@@ -46,6 +47,7 @@ logger = structlog.get_logger(__name__)
 _TERMINAL_STATUS_VALUES = ("COMPLETED", "NOT_CONNECTED", "FAILED", "CANCELLED")
 
 __all__ = [
+    "agent_fingerprint",
     "create_job",
     "delete_job",
     "ensure_agent",
@@ -187,17 +189,42 @@ async def update_job(session: AsyncSession, job: Job, payload: JobUpdate) -> Job
     return job
 
 
+def agent_fingerprint(payload: AgentCreate) -> str:
+    """A stable hash of everything that decides what the agent says.
+
+    Covers the voice, the spoken name, the language and every prompt, so
+    a change to any of them is detectable. Computed from the serialised
+    payload rather than a hand-listed set of fields, because the failure
+    this guards against is precisely the one where somebody changes
+    prompt generation and forgets that live agents exist.
+    """
+    body = payload.model_dump_json(exclude_none=False)
+    return hashlib.sha256(body.encode()).hexdigest()
+
+
 async def ensure_agent(session: AsyncSession, client: HunarClient, job: Job) -> uuid.UUID:
-    """Return this job's Hunar agent id, creating the agent if needed.
+    """Return this job's Hunar agent id, creating or replacing as needed.
 
     Idempotent, so callers can invoke it before every launch without
     worrying about duplicates. One agent per job is forced by the API:
     ``result_schema`` lives on the agent, and each role extracts different
     fields, so a shared agent could not carry per-role extraction at all.
-    """
-    if job.hunar_agent_id is not None:
-        return job.hunar_agent_id
 
+    It also repairs an agent that has **drifted**. An agent is created
+    once and then never inspected again, so when prompt generation
+    changes, the existing agents keep the old wording indefinitely. That
+    happened: the persona name started following the voice, but roles
+    created earlier went on introducing a male voice as "Neha", and the
+    only place the mistake was visible was a live phone call.
+
+    Drift is corrected by updating the agent, never by replacing it. The
+    agent id has to stay stable because reconciliation finds calls by it,
+    and a fresh id orphans every call already placed for the role. This
+    is the one narrow case where editing a live agent is right: the
+    questions cannot have changed, because ``update_job`` refuses to
+    change them once calls exist, so only the spoken fields can differ
+    and none of those alter what a stored answer means.
+    """
     payload: AgentCreate = build_agent_payload(
         title=job.title,
         company_name=job.company_name,
@@ -208,6 +235,62 @@ async def ensure_agent(session: AsyncSession, client: HunarClient, job: Job) -> 
         voice_persona=job.voice_persona,
         persona_name=job.persona_name,
     )
+    fingerprint = agent_fingerprint(payload)
+
+    if job.hunar_agent_id is not None:
+        if job.agent_fingerprint == fingerprint:
+            return job.hunar_agent_id
+
+        # Drifted. Correct it **in place**, keeping the same agent id.
+        #
+        # Replacing the agent instead was the obvious first attempt and it
+        # was wrong: reconciliation finds calls by agent id, so a new
+        # agent orphans every call already placed for this role. The
+        # symptom was completed calls that never delivered their answers,
+        # which is a worse bug than the one being fixed.
+        #
+        # Editing a live agent is safe here specifically because
+        # ``result_schema`` cannot have changed: ``update_job`` refuses to
+        # edit a role's questions once calls exist, so the only fields
+        # that can differ are the spoken ones, and those do not change
+        # what a stored answer means.
+        try:
+            await client.update_agent(
+                job.hunar_agent_id,
+                AgentUpdate(
+                    name=payload.name,
+                    voice_persona=payload.voice_persona,
+                    persona_name=payload.persona_name,
+                    language=payload.language,
+                    introduction=payload.introduction,
+                    objective=payload.objective,
+                    agent_prompt=payload.agent_prompt,
+                    result_prompt=payload.result_prompt,
+                    result_schema=payload.result_schema,
+                ),
+            )
+        except HunarError as exc:
+            # Keep using the agent we have. A stale spoken name is bad;
+            # refusing to place the call at all is worse.
+            logger.warning(
+                "hiring.agent_drift_update_failed",
+                job_id=str(job.id),
+                agent_id=str(job.hunar_agent_id),
+                error=exc.message,
+            )
+            return job.hunar_agent_id
+
+        job.agent_fingerprint = fingerprint
+        job.agent_synced_at = datetime.now(UTC)
+        await session.flush()
+        logger.info(
+            "hiring.agent_drift_corrected",
+            job_id=str(job.id),
+            agent_id=str(job.hunar_agent_id),
+            persona_name=payload.persona_name,
+            voice_persona=payload.voice_persona.value,
+        )
+        return job.hunar_agent_id
 
     try:
         agent: Agent = await client.create_agent(payload)
@@ -217,6 +300,7 @@ async def ensure_agent(session: AsyncSession, client: HunarClient, job: Job) -> 
 
     job.hunar_agent_id = agent.id
     job.hunar_agent_code = agent.agent_code
+    job.agent_fingerprint = fingerprint
     job.agent_synced_at = datetime.now(UTC)
     if job.status == JobStatus.DRAFT.value:
         job.status = JobStatus.READY.value

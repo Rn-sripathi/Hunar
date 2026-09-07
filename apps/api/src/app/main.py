@@ -76,11 +76,14 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
                 added = await seed_allowlist(session, settings)
                 await session.commit()
             logger.info("app.allowlist_loaded", added=added)
-        except SQLAlchemyError:
-            # A database that is not reachable yet must not stop the
-            # service booting; the health endpoint reports it properly and
-            # the seed can be re-run from the API.
-            logger.warning("app.allowlist_seed_deferred", exc_info=True)
+        except SQLAlchemyError as exc:
+            # A database that is not reachable, or whose migrations have
+            # not run yet, must not stop the service booting: the health
+            # endpoint reports it properly and the seed can be re-run
+            # through the API. Logged without a traceback because this is
+            # an expected condition rather than a crash, and a stack dump
+            # here buries whatever the real problem was.
+            logger.warning("app.allowlist_seed_deferred", error=str(exc)[:200])
 
     logger.info(
         "app.started",
