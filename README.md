@@ -247,7 +247,12 @@ Backend to Render, frontend to Vercel, database on Neon.
 3. Set `PUBLIC_API_BASE_URL` to the service's own URL and redeploy. It is the
    root of every webhook callback URL, and Hunar rejects non-HTTPS callbacks.
 4. Deploy `apps/web` on Vercel with `NEXT_PUBLIC_API_BASE_URL` pointing at it.
-5. Add the Vercel domain to `CORS_ORIGINS` on Render.
+5. Add the Vercel domain to `CORS_ORIGINS` on Render, with no trailing
+   slash. This is not optional and it is not obvious when wrong: an empty
+   value permits *no* origin, so both services report perfect health
+   while every request fails inside the browser. Comma-separate several
+   if you also want preview deployments to work, since each Vercel
+   deployment URL is a separate origin.
 
 Deploy the backend first: step 3 depends on knowing its URL.
 

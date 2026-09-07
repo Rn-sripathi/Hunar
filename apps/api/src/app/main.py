@@ -144,6 +144,21 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     app.state.settings = settings
 
+    # An empty allow-list is almost always a mistake rather than a
+    # deliberate lockdown, and its symptom is the least informative one
+    # available: two services reporting perfect health while every
+    # request fails inside the browser with no server-side trace. Said
+    # once, loudly, at startup.
+    if settings.is_production and not settings.cors_origin_list:
+        logger.error(
+            "app.cors_allows_nothing",
+            note=(
+                "CORS_ORIGINS is empty, so no browser origin is permitted and "
+                "the frontend cannot call this API at all. Set it to the "
+                "deployed frontend's origin, comma separated for more than one."
+            ),
+        )
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origin_list,
