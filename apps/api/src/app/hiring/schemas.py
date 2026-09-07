@@ -217,8 +217,14 @@ class CandidateCreate(BaseModel):
 class CandidateOut(_Out):
     id: uuid.UUID
     name: str
-    mobile_number: str
-    #: Masked for list views. The full number is never sent to the browser.
+    #: The only form of the number that leaves the server.
+    #:
+    #: The full number used to travel beside this, which made the masking
+    #: decorative: a deployment served both, and the browser simply chose
+    #: which to render. The field is gone rather than merely unused,
+    #: because a misconfigured deployment then cannot leak what the API
+    #: never sends. The frontend only ever *submits* a number; nothing
+    #: reads one back.
     mobile_masked: str = ""
     source: str
     decision: CandidateDecision

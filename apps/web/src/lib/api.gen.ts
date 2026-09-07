@@ -4,2873 +4,2868 @@
  */
 
 export interface paths {
-  "/healthz": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/healthz": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Healthz
+         * @description Liveness. Answers if the process is running, nothing more.
+         */
+        get: operations["healthz_healthz_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * Healthz
-     * @description Liveness. Answers if the process is running, nothing more.
-     */
-    get: operations["healthz_healthz_get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/readyz": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/readyz": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Readyz
+         * @description Readiness. Actually touches the database and reports the voice mode.
+         */
+        get: operations["readyz_readyz_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * Readyz
-     * @description Readiness. Actually touches the database and reports the voice mode.
-     */
-    get: operations["readyz_readyz_get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/meta": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/meta": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Meta
+         * @description Runtime facts the frontend needs, including whether data is simulated.
+         */
+        get: operations["meta_meta_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * Meta
-     * @description Runtime facts the frontend needs, including whether data is simulated.
-     */
-    get: operations["meta_meta_get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/hiring/jobs/extract": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/v1/hiring/jobs/extract": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Extract From Description
+         * @description Read a job description and fill in the whole create-role form.
+         *
+         *     The recruiter already has the description. Making them retype the
+         *     title, the city and five questions it already contains is work the
+         *     text can do itself.
+         *
+         *     Saves nothing. The result is a draft the recruiter reviews and edits,
+         *     and `source` says whether a model read the description or whether it
+         *     was filled in by keyword matching, so nobody has to guess how much to
+         *     trust it.
+         */
+        post: operations["extract_from_description_api_v1_hiring_jobs_extract_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Extract From Description
-     * @description Read a job description and fill in the whole create-role form.
-     *
-     *     The recruiter already has the description. Making them retype the
-     *     title, the city and five questions it already contains is work the
-     *     text can do itself.
-     *
-     *     Saves nothing. The result is a draft the recruiter reviews and edits,
-     *     and `source` says whether a model read the description or whether it
-     *     was filled in by keyword matching, so nobody has to guess how much to
-     *     trust it.
-     */
-    post: operations["extract_from_description_api_v1_hiring_jobs_extract_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/hiring/jobs/preview": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/v1/hiring/jobs/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Preview Agent
+         * @description Render the agent script and extraction schema for a draft role.
+         */
+        post: operations["preview_agent_api_v1_hiring_jobs_preview_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Preview Agent
-     * @description Render the agent script and extraction schema for a draft role.
-     */
-    post: operations["preview_agent_api_v1_hiring_jobs_preview_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/hiring/jobs": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/v1/hiring/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Jobs */
+        get: operations["list_jobs_api_v1_hiring_jobs_get"];
+        put?: never;
+        /** Create Job */
+        post: operations["create_job_api_v1_hiring_jobs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** List Jobs */
-    get: operations["list_jobs_api_v1_hiring_jobs_get"];
-    put?: never;
-    /** Create Job */
-    post: operations["create_job_api_v1_hiring_jobs_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/hiring/jobs/{job_id}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/v1/hiring/jobs/{job_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Job */
+        get: operations["get_job_api_v1_hiring_jobs__job_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * Archive Job
+         * @description Archive rather than delete. Screening results describe real calls.
+         */
+        delete: operations["archive_job_api_v1_hiring_jobs__job_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Job */
+        patch: operations["update_job_api_v1_hiring_jobs__job_id__patch"];
+        trace?: never;
     };
-    /** Get Job */
-    get: operations["get_job_api_v1_hiring_jobs__job_id__get"];
-    put?: never;
-    post?: never;
-    /**
-     * Archive Job
-     * @description Archive rather than delete. Screening results describe real calls.
-     */
-    delete: operations["archive_job_api_v1_hiring_jobs__job_id__delete"];
-    options?: never;
-    head?: never;
-    /** Update Job */
-    patch: operations["update_job_api_v1_hiring_jobs__job_id__patch"];
-    trace?: never;
-  };
-  "/api/v1/hiring/jobs/{job_id}/candidates": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/v1/hiring/jobs/{job_id}/candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Candidates */
+        get: operations["list_candidates_api_v1_hiring_jobs__job_id__candidates_get"];
+        put?: never;
+        /** Add Candidate */
+        post: operations["add_candidate_api_v1_hiring_jobs__job_id__candidates_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** List Candidates */
-    get: operations["list_candidates_api_v1_hiring_jobs__job_id__candidates_get"];
-    put?: never;
-    /** Add Candidate */
-    post: operations["add_candidate_api_v1_hiring_jobs__job_id__candidates_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/hiring/jobs/{job_id}/candidates/import": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/v1/hiring/jobs/{job_id}/candidates/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Candidates
+         * @description Import candidates from a CSV export.
+         */
+        post: operations["import_candidates_api_v1_hiring_jobs__job_id__candidates_import_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Import Candidates
-     * @description Import candidates from a CSV export.
-     */
-    post: operations["import_candidates_api_v1_hiring_jobs__job_id__candidates_import_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/hiring/jobs/{job_id}/candidates/{candidate_id}/decision": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/v1/hiring/jobs/{job_id}/candidates/{candidate_id}/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Set Decision
+         * @description Record a recruiter's shortlist or reject decision.
+         *
+         *     The score ranks; a person decides. This endpoint is what keeps the
+         *     automated ranking advisory rather than determinative.
+         */
+        patch: operations["set_decision_api_v1_hiring_jobs__job_id__candidates__candidate_id__decision_patch"];
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    /**
-     * Set Decision
-     * @description Record a recruiter's shortlist or reject decision.
-     *
-     *     The score ranks; a person decides. This endpoint is what keeps the
-     *     automated ranking advisory rather than determinative.
-     */
-    patch: operations["set_decision_api_v1_hiring_jobs__job_id__candidates__candidate_id__decision_patch"];
-    trace?: never;
-  };
-  "/api/v1/hiring/jobs/{job_id}/candidates/{candidate_id}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/v1/hiring/jobs/{job_id}/candidates/{candidate_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Candidate */
+        delete: operations["delete_candidate_api_v1_hiring_jobs__job_id__candidates__candidate_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    post?: never;
-    /** Delete Candidate */
-    delete: operations["delete_candidate_api_v1_hiring_jobs__job_id__candidates__candidate_id__delete"];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/hiring/jobs/{job_id}/calls/launch": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/v1/hiring/jobs/{job_id}/calls/launch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Launch
+         * @description Place screening calls.
+         *
+         *     Creates the job's voice agent on first use. Candidates who already
+         *     have a completed or in-flight call are skipped rather than dialled
+         *     again, and anything the telephony layer refuses comes back with its
+         *     reason attached rather than failing the whole batch.
+         */
+        post: operations["launch_api_v1_hiring_jobs__job_id__calls_launch_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Launch
-     * @description Place screening calls.
-     *
-     *     Creates the job's voice agent on first use. Candidates who already
-     *     have a completed or in-flight call are skipped rather than dialled
-     *     again, and anything the telephony layer refuses comes back with its
-     *     reason attached rather than failing the whole batch.
-     */
-    post: operations["launch_api_v1_hiring_jobs__job_id__calls_launch_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/hiring/jobs/{job_id}/calls": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/v1/hiring/jobs/{job_id}/calls": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Calls
+         * @description List call attempts, refreshing any that are still in flight.
+         */
+        get: operations["list_calls_api_v1_hiring_jobs__job_id__calls_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * List Calls
-     * @description List call attempts, refreshing any that are still in flight.
-     */
-    get: operations["list_calls_api_v1_hiring_jobs__job_id__calls_get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/hiring/jobs/{job_id}/calls/refresh": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/v1/hiring/jobs/{job_id}/calls/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Refresh Calls
+         * @description Force a refresh, ignoring the usual staleness interval.
+         *
+         *     Exists for the operator who is watching a call and wants an answer
+         *     now rather than on the next poll.
+         */
+        post: operations["refresh_calls_api_v1_hiring_jobs__job_id__calls_refresh_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Refresh Calls
-     * @description Force a refresh, ignoring the usual staleness interval.
-     *
-     *     Exists for the operator who is watching a call and wants an answer
-     *     now rather than on the next poll.
-     */
-    post: operations["refresh_calls_api_v1_hiring_jobs__job_id__calls_refresh_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/hiring/jobs/{job_id}/results": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/v1/hiring/jobs/{job_id}/results": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Results
+         * @description Return the results table's columns and rows together.
+         *
+         *     Columns come from the job's stored field specification, so a single
+         *     endpoint and a single frontend table render every role no matter what
+         *     it asks. ``in_progress`` tells the client whether to keep polling.
+         */
+        get: operations["results_api_v1_hiring_jobs__job_id__results_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * Results
-     * @description Return the results table's columns and rows together.
-     *
-     *     Columns come from the job's stored field specification, so a single
-     *     endpoint and a single frontend table render every role no matter what
-     *     it asks. ``in_progress`` tells the client whether to keep polling.
-     */
-    get: operations["results_api_v1_hiring_jobs__job_id__results_get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/people/extract-filters": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/v1/people/extract-filters": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Extract
+         * @description Turn a job description into editable search filters.
+         *
+         *     Spends nothing and saves nothing. ``method`` reports whether a model
+         *     read the description or whether keyword matching filled it in, so the
+         *     screen can say how much to trust what it is showing.
+         */
+        post: operations["extract_api_v1_people_extract_filters_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Extract
-     * @description Turn a job description into editable search filters.
-     *
-     *     Spends nothing and saves nothing. ``method`` reports whether a model
-     *     read the description or whether keyword matching filled it in, so the
-     *     screen can say how much to trust what it is showing.
-     */
-    post: operations["extract_api_v1_people_extract_filters_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/people/search": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/v1/people/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Search
+         * @description Search for people, rank them, and record what was asked for.
+         *
+         *     Returns the literal provider query alongside the results. A surprising
+         *     result set should be explainable rather than arguable.
+         */
+        post: operations["search_api_v1_people_search_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Search
-     * @description Search for people, rank them, and record what was asked for.
-     *
-     *     Returns the literal provider query alongside the results. A surprising
-     *     result set should be explainable rather than arguable.
-     */
-    post: operations["search_api_v1_people_search_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/people/policy": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/v1/people/policy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Policy
+         * @description The consent and calling rules currently in force.
+         */
+        get: operations["policy_api_v1_people_policy_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * Policy
-     * @description The consent and calling rules currently in force.
-     */
-    get: operations["policy_api_v1_people_policy_get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/people/prospects/{prospect_id}/consent": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/v1/people/prospects/{prospect_id}/consent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Link Consent
+         * @description Bind a prospect to a number the operator has already consented to.
+         *
+         *     This is the only way a sourced person becomes callable, and it is
+         *     worth being precise about what it does and does not do.
+         *
+         *     It does **not** grant permission. The set of dialable numbers is fixed
+         *     by the environment and cannot be added to from inside the product.
+         *     What this records is that a particular sourced person is reachable on
+         *     a number that was already permitted, which is exactly what happens in
+         *     reality: you find someone through a directory, and their consent to be
+         *     called arrives through some other channel entirely, a reply, a
+         *     referral, an event sign-up. Nothing about being findable implies it.
+         *
+         *     The binding is exclusive. Two prospects pointing at one number would
+         *     mean a campaign calling the same handset twice about the same role
+         *     while believing it had reached two people.
+         */
+        post: operations["link_consent_api_v1_people_prospects__prospect_id__consent_post"];
+        /**
+         * Unlink Consent
+         * @description Withdraw a consent binding, making the person uncallable again.
+         */
+        delete: operations["unlink_consent_api_v1_people_prospects__prospect_id__consent_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Link Consent
-     * @description Bind a prospect to a number the operator has already consented to.
-     *
-     *     This is the only way a sourced person becomes callable, and it is
-     *     worth being precise about what it does and does not do.
-     *
-     *     It does **not** grant permission. The set of dialable numbers is fixed
-     *     by the environment and cannot be added to from inside the product.
-     *     What this records is that a particular sourced person is reachable on
-     *     a number that was already permitted, which is exactly what happens in
-     *     reality: you find someone through a directory, and their consent to be
-     *     called arrives through some other channel entirely, a reply, a
-     *     referral, an event sign-up. Nothing about being findable implies it.
-     *
-     *     The binding is exclusive. Two prospects pointing at one number would
-     *     mean a campaign calling the same handset twice about the same role
-     *     while believing it had reached two people.
-     */
-    post: operations["link_consent_api_v1_people_prospects__prospect_id__consent_post"];
-    /**
-     * Unlink Consent
-     * @description Withdraw a consent binding, making the person uncallable again.
-     */
-    delete: operations["unlink_consent_api_v1_people_prospects__prospect_id__consent_delete"];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/people/allowlist/seed": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/v1/people/allowlist/seed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Seed
+         * @description Load the environment's allowlist into the database.
+         *
+         *     Idempotent. Runs at startup too; exposed so an operator who edits the
+         *     environment can pick up the change without a restart.
+         */
+        post: operations["seed_api_v1_people_allowlist_seed_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Seed
-     * @description Load the environment's allowlist into the database.
-     *
-     *     Idempotent. Runs at startup too; exposed so an operator who edits the
-     *     environment can pick up the change without a restart.
-     */
-    post: operations["seed_api_v1_people_allowlist_seed_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/people/prospects": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/v1/people/prospects": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Prospects
+         * @description Everyone sourced so far.
+         *
+         *     This exists because prospects were persisted and then shown only in
+         *     the response that created them. Reloading the search screen threw
+         *     away people who had cost real provider credits to find, which is
+         *     close to the worst possible way to lose data.
+         *
+         *     Ordered by fit score so the list is immediately useful, and the
+         *     consent decision is recomputed per row rather than stored, because it
+         *     depends on the environment's allowlist and on the clock.
+         */
+        get: operations["list_prospects_api_v1_people_prospects_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * List Prospects
-     * @description Everyone sourced so far.
-     *
-     *     This exists because prospects were persisted and then shown only in
-     *     the response that created them. Reloading the search screen threw
-     *     away people who had cost real provider credits to find, which is
-     *     close to the worst possible way to lose data.
-     *
-     *     Ordered by fit score so the list is immediately useful, and the
-     *     consent decision is recomputed per row rather than stored, because it
-     *     depends on the environment's allowlist and on the clock.
-     */
-    get: operations["list_prospects_api_v1_people_prospects_get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/people/searches": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/v1/people/searches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Searches
+         * @description Past searches, so a result set can be found again.
+         *
+         *     Each one cost credits, so being able to point at the search that
+         *     produced a list of people is both an audit trail and a way to avoid
+         *     paying twice for the same question.
+         */
+        get: operations["list_searches_api_v1_people_searches_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * List Searches
-     * @description Past searches, so a result set can be found again.
-     *
-     *     Each one cost credits, so being able to point at the search that
-     *     produced a list of people is both an audit trail and a way to avoid
-     *     paying twice for the same question.
-     */
-    get: operations["list_searches_api_v1_people_searches_get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/campaigns": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/v1/campaigns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Campaigns */
+        get: operations["list_campaigns_api_v1_campaigns_get"];
+        put?: never;
+        /**
+         * Create Campaign
+         * @description Assemble a campaign, running the consent gate over every prospect.
+         *
+         *     Creating a campaign places no calls. Prospects the gate refuses are
+         *     reported in the detail's blocked count rather than stored, because a
+         *     target row cannot exist without a consented number to point at.
+         */
+        post: operations["create_campaign_api_v1_campaigns_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** List Campaigns */
-    get: operations["list_campaigns_api_v1_campaigns_get"];
-    put?: never;
-    /**
-     * Create Campaign
-     * @description Assemble a campaign, running the consent gate over every prospect.
-     *
-     *     Creating a campaign places no calls. Prospects the gate refuses are
-     *     reported in the detail's blocked count rather than stored, because a
-     *     target row cannot exist without a consented number to point at.
-     */
-    post: operations["create_campaign_api_v1_campaigns_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/campaigns/{campaign_id}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/v1/campaigns/{campaign_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Campaign
+         * @description A campaign with its live call state and extracted answers.
+         */
+        get: operations["get_campaign_api_v1_campaigns__campaign_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Campaign */
+        delete: operations["delete_campaign_api_v1_campaigns__campaign_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * Get Campaign
-     * @description A campaign with its live call state and extracted answers.
-     */
-    get: operations["get_campaign_api_v1_campaigns__campaign_id__get"];
-    put?: never;
-    post?: never;
-    /** Delete Campaign */
-    delete: operations["delete_campaign_api_v1_campaigns__campaign_id__delete"];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/campaigns/{campaign_id}/launch": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/v1/campaigns/{campaign_id}/launch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Launch
+         * @description Place the calls.
+         *
+         *     Every target is re-checked against the consent gate here, not just
+         *     when the campaign was built, because the clock moves between the two.
+         */
+        post: operations["launch_api_v1_campaigns__campaign_id__launch_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Launch
-     * @description Place the calls.
-     *
-     *     Every target is re-checked against the consent gate here, not just
-     *     when the campaign was built, because the clock moves between the two.
-     */
-    post: operations["launch_api_v1_campaigns__campaign_id__launch_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/webhooks/hunar/{callback_token}/{event_slug}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/webhooks/hunar/{callback_token}/{event_slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Receive
+         * @description Authenticate one webhook delivery and schedule a state refresh.
+         */
+        post: operations["receive_webhooks_hunar__callback_token___event_slug__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Receive
-     * @description Authenticate one webhook delivery and schedule a state refresh.
-     */
-    post: operations["receive_webhooks_hunar__callback_token___event_slug__post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-  schemas: {
-    /**
-     * AgentPreview
-     * @description Exactly what the voice agent will be told, shown before any call.
-     *
-     *     This is the screen that makes the product legible: a recruiter can
-     *     read the script and the extraction schema their job description
-     *     produced, and correct it, rather than discovering a bad prompt from a
-     *     confused candidate on the phone.
-     */
-    AgentPreview: {
-      /** Introduction */
-      introduction: string;
-      /** Objective */
-      objective: string;
-      /** Agent Prompt */
-      agent_prompt: string;
-      /** Result Prompt */
-      result_prompt: string;
-      /** Result Schema */
-      result_schema: {
-        [key: string]: string;
-      };
-      /** Variables */
-      variables: string[];
+    schemas: {
+        /**
+         * AgentPreview
+         * @description Exactly what the voice agent will be told, shown before any call.
+         *
+         *     This is the screen that makes the product legible: a recruiter can
+         *     read the script and the extraction schema their job description
+         *     produced, and correct it, rather than discovering a bad prompt from a
+         *     confused candidate on the phone.
+         */
+        AgentPreview: {
+            /** Introduction */
+            introduction: string;
+            /** Objective */
+            objective: string;
+            /** Agent Prompt */
+            agent_prompt: string;
+            /** Result Prompt */
+            result_prompt: string;
+            /** Result Schema */
+            result_schema: {
+                [key: string]: string;
+            };
+            /** Variables */
+            variables: string[];
+        };
+        /** AllowlistEntryOut */
+        AllowlistEntryOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** E164 Masked */
+            e164_masked: string;
+            /** Label */
+            label: string;
+        };
+        /**
+         * AnswerType
+         * @description How an answer is coerced, rendered and scored.
+         *
+         *     Hunar returns every value as a string, so this is our declaration of
+         *     what the string is meant to represent. It drives the normaliser, the
+         *     column renderer and the scoring rules from one place.
+         * @enum {string}
+         */
+        AnswerType: "BOOLEAN" | "NUMBER" | "STRING" | "ENUM";
+        /** Body_import_candidates_api_v1_hiring_jobs__job_id__candidates_import_post */
+        Body_import_candidates_api_v1_hiring_jobs__job_id__candidates_import_post: {
+            /** File */
+            file: string;
+        };
+        /** CallAttemptOut */
+        CallAttemptOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Candidate Id */
+            candidate_id?: string | null;
+            /** Hunar Call Id */
+            hunar_call_id?: string | null;
+            /** Status */
+            status: string;
+            /** Lifecycle Status */
+            lifecycle_status: string;
+            /** Engagement Status */
+            engagement_status?: string | null;
+            /** Answered By */
+            answered_by?: string | null;
+            /** Recording Url */
+            recording_url?: string | null;
+            /** Duration Seconds */
+            duration_seconds?: number | null;
+            /** Raw Result */
+            raw_result?: {
+                [key: string]: unknown;
+            } | null;
+            /** Normalized Result */
+            normalized_result?: {
+                [key: string]: unknown;
+            } | null;
+            /** Score */
+            score?: number | null;
+            /** Score Breakdown */
+            score_breakdown?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Disqualified
+             * @default false
+             */
+            disqualified: boolean;
+            /** Disqualified Reason */
+            disqualified_reason?: string | null;
+            /** Error Code */
+            error_code?: string | null;
+            /** Error Detail */
+            error_detail?: string | null;
+            /**
+             * Retry Count
+             * @default 0
+             */
+            retry_count: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * CallingPolicyOut
+         * @description What this deployment is permitted to do, stated plainly.
+         *
+         *     Surfaced to the UI so the calling policy is visible in the product
+         *     rather than buried in a README nobody opens. A recruiter looking at a
+         *     list of people it will not call deserves to see why in the same
+         *     screen.
+         */
+        CallingPolicyOut: {
+            /** Provider */
+            provider: string;
+            /** Provider Reveals Phone */
+            provider_reveals_phone: boolean;
+            /** Allowlist */
+            allowlist: components["schemas"]["AllowlistEntryOut"][];
+            /** Calling Hours Start */
+            calling_hours_start: string;
+            /** Calling Hours End */
+            calling_hours_end: string;
+            /** Calling Timezone */
+            calling_timezone: string;
+            /** Within Calling Hours */
+            within_calling_hours: boolean;
+        };
+        /**
+         * CampaignCreate
+         * @description Start an outreach round against a set of prospects.
+         */
+        CampaignCreate: {
+            /** Search Id */
+            search_id?: string | null;
+            /** Prospect Ids */
+            prospect_ids: string[];
+            /** Job Title */
+            job_title: string;
+            /** Company Name */
+            company_name: string;
+            /** Job City */
+            job_city?: string | null;
+            /** Work Mode */
+            work_mode?: string | null;
+            /** Role Pitch */
+            role_pitch: string;
+            /** Comp Range Text */
+            comp_range_text?: string | null;
+            /**
+             * Recruiter Name
+             * @default our recruiter
+             */
+            recruiter_name: string;
+        };
+        /** CampaignDetail */
+        CampaignDetail: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Job Title */
+            job_title: string;
+            /** Company Name */
+            company_name: string;
+            /** Job City */
+            job_city?: string | null;
+            /** Status */
+            status: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Launched At */
+            launched_at?: string | null;
+            /**
+             * Target Count
+             * @default 0
+             */
+            target_count: number;
+            /**
+             * Completed Count
+             * @default 0
+             */
+            completed_count: number;
+            /**
+             * Interested Count
+             * @default 0
+             */
+            interested_count: number;
+            /**
+             * Blocked Count
+             * @default 0
+             */
+            blocked_count: number;
+            /**
+             * Role Pitch
+             * @default
+             */
+            role_pitch: string;
+            /** Comp Range Text */
+            comp_range_text?: string | null;
+            /**
+             * Recruiter Name
+             * @default
+             */
+            recruiter_name: string;
+            /** Work Mode */
+            work_mode?: string | null;
+            /** Columns */
+            columns?: {
+                [key: string]: unknown;
+            }[];
+            /** Targets */
+            targets?: components["schemas"]["TargetOut"][];
+            /**
+             * In Progress
+             * @default false
+             */
+            in_progress: boolean;
+            /** Script Preview */
+            script_preview?: {
+                [key: string]: string;
+            };
+        };
+        /** CampaignSummary */
+        CampaignSummary: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Job Title */
+            job_title: string;
+            /** Company Name */
+            company_name: string;
+            /** Job City */
+            job_city?: string | null;
+            /** Status */
+            status: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Launched At */
+            launched_at?: string | null;
+            /**
+             * Target Count
+             * @default 0
+             */
+            target_count: number;
+            /**
+             * Completed Count
+             * @default 0
+             */
+            completed_count: number;
+            /**
+             * Interested Count
+             * @default 0
+             */
+            interested_count: number;
+            /**
+             * Blocked Count
+             * @default 0
+             */
+            blocked_count: number;
+        };
+        /** CandidateCreate */
+        CandidateCreate: {
+            /** Name */
+            name: string;
+            /** Mobile Number */
+            mobile_number: string;
+            /** Extra */
+            extra?: {
+                [key: string]: string;
+            };
+        };
+        /**
+         * CandidateDecision
+         * @enum {string}
+         */
+        CandidateDecision: "PENDING" | "SHORTLISTED" | "REJECTED";
+        /**
+         * CandidateImportReport
+         * @description Outcome of a spreadsheet import.
+         *
+         *     Rejected rows are returned with their reason rather than silently
+         *     dropped, because a recruiter who uploaded 200 rows and got 180
+         *     candidates needs to know which twenty were lost and why.
+         */
+        CandidateImportReport: {
+            /** Imported */
+            imported: number;
+            /** Skipped Duplicates */
+            skipped_duplicates: number;
+            /** Rejected */
+            rejected?: {
+                [key: string]: string;
+            }[];
+            /** Candidates */
+            candidates?: components["schemas"]["CandidateOut"][];
+        };
+        /** CandidateOut */
+        CandidateOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /**
+             * Mobile Masked
+             * @default
+             */
+            mobile_masked: string;
+            /** Source */
+            source: string;
+            decision: components["schemas"]["CandidateDecision"];
+            /** Decision Note */
+            decision_note?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** DecisionUpdate */
+        DecisionUpdate: {
+            decision: components["schemas"]["CandidateDecision"];
+            /** Note */
+            note?: string | null;
+        };
+        /** DependencyState */
+        DependencyState: {
+            /** Name */
+            name: string;
+            /** Ok */
+            ok: boolean;
+            /** Detail */
+            detail?: string | null;
+        };
+        /**
+         * DraftQuestion
+         * @description One screening question the model proposed.
+         */
+        DraftQuestion: {
+            /**
+             * Label
+             * @description Short column heading, two or three words
+             */
+            label: string;
+            /**
+             * Text
+             * @description The question as the agent should speak it
+             */
+            text: string;
+            /**
+             * Answer Type
+             * @enum {string}
+             */
+            answer_type: "STRING" | "NUMBER" | "BOOLEAN" | "ENUM";
+            /**
+             * Enum Options
+             * @description Allowed answers. Only for ENUM, otherwise empty.
+             */
+            enum_options?: string[];
+            /**
+             * Weight
+             * @description Importance from 0 to 5
+             */
+            weight: number;
+            /**
+             * Is Knockout
+             * @description True only for genuine hard requirements stated in the description
+             */
+            is_knockout: boolean;
+            /**
+             * Minimum
+             * @description For a NUMBER question only. Copy the exact threshold the description states, so 'minimum 1 year of experience' gives 1 and 'at least 3 years' gives 3. Use null when the description states no threshold. Never use 0 as a stand-in for 'no threshold', because a minimum of zero excludes nobody. Always null for every other answer type.
+             */
+            minimum?: number | null;
+        };
+        /** ExtractFiltersRequest */
+        ExtractFiltersRequest: {
+            /** Jd Text */
+            jd_text: string;
+        };
+        /**
+         * ExtractRequest
+         * @description A pasted job description, to be turned into a filled-in form.
+         */
+        ExtractRequest: {
+            /** Jd Text */
+            jd_text: string;
+        };
+        /**
+         * ExtractionResult
+         * @description Filters, plus an honest account of where they came from.
+         */
+        ExtractionResult: {
+            filters: components["schemas"]["SearchFilters"];
+            /**
+             * Method
+             * @enum {string}
+             */
+            method: "llm" | "heuristic" | "manual";
+            /** Note */
+            note?: string | null;
+        };
+        /**
+         * FieldSpec
+         * @description One column of a results table.
+         *
+         *     Returned alongside the rows so the frontend can build a table for a
+         *     schema it has never seen. That is what lets one table component serve
+         *     screening answers and outreach answers without knowing which it is
+         *     looking at. ``system`` marks fields that are always present regardless
+         *     of what the operator asked for.
+         */
+        FieldSpec: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            answer_type: components["schemas"]["AnswerType"];
+            /** Enum Options */
+            enum_options?: string[] | null;
+            /**
+             * Weight
+             * @default 0
+             */
+            weight: number;
+            /**
+             * Is Knockout
+             * @default false
+             */
+            is_knockout: boolean;
+            /**
+             * System
+             * @default false
+             */
+            system: boolean;
+        };
+        /** HTTPValidationError */
+        HTTPValidationError: {
+            /** Detail */
+            detail?: components["schemas"]["ValidationError"][];
+        };
+        /** HealthResponse */
+        HealthResponse: {
+            /**
+             * Status
+             * @constant
+             */
+            status: "ok";
+            /** Version */
+            version: string;
+            /** Environment */
+            environment: string;
+        };
+        /** JobCreate */
+        JobCreate: {
+            /** Title */
+            title: string;
+            /** Company Name */
+            company_name: string;
+            /** Location */
+            location?: string | null;
+            /**
+             * Description Raw
+             * @default
+             */
+            description_raw: string;
+            /**
+             * Language
+             * @default ENGLISH
+             */
+            language: string;
+            /**
+             * Voice Persona
+             * @default NEHA
+             */
+            voice_persona: string;
+            /** Persona Name */
+            persona_name?: string | null;
+            /**
+             * Timezone
+             * @default Asia/Kolkata
+             */
+            timezone: string;
+            /** Questions */
+            questions: components["schemas"]["QuestionInput"][];
+        };
+        /** JobDetail */
+        JobDetail: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            /** Company Name */
+            company_name: string;
+            /** Location */
+            location?: string | null;
+            /** Language */
+            language: string;
+            /** Voice Persona */
+            voice_persona: string;
+            status: components["schemas"]["JobStatus"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Candidate Count
+             * @default 0
+             */
+            candidate_count: number;
+            /**
+             * Call Count
+             * @default 0
+             */
+            call_count: number;
+            /**
+             * Completed Count
+             * @default 0
+             */
+            completed_count: number;
+            /**
+             * Shortlisted Count
+             * @default 0
+             */
+            shortlisted_count: number;
+            /**
+             * In Flight Count
+             * @default 0
+             */
+            in_flight_count: number;
+            /** Description Raw */
+            description_raw: string;
+            /** Persona Name */
+            persona_name?: string | null;
+            /** Timezone */
+            timezone: string;
+            /** Hunar Agent Id */
+            hunar_agent_id?: string | null;
+            /** Agent Synced At */
+            agent_synced_at?: string | null;
+            /** Questions */
+            questions?: components["schemas"]["QuestionOut"][];
+            /** Field Spec */
+            field_spec?: components["schemas"]["FieldSpec"][];
+            preview?: components["schemas"]["AgentPreview"] | null;
+        };
+        /**
+         * JobDraft
+         * @description Everything the create-role form needs, derived from the description.
+         */
+        JobDraft: {
+            /** Title */
+            title: string;
+            /** Company Name */
+            company_name: string;
+            /** Location */
+            location: string;
+            /** Language */
+            language: string;
+            /** Voice Persona */
+            voice_persona: string;
+            /** Questions */
+            questions: components["schemas"]["DraftQuestion"][];
+            /**
+             * Source
+             * @default heuristic
+             * @enum {string}
+             */
+            source: "model" | "heuristic";
+            /** Note */
+            note?: string | null;
+        };
+        /**
+         * JobStatus
+         * @description Where a role is in its screening lifecycle.
+         * @enum {string}
+         */
+        JobStatus: "DRAFT" | "READY" | "CALLING" | "DONE" | "ARCHIVED";
+        /** JobSummary */
+        JobSummary: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            /** Company Name */
+            company_name: string;
+            /** Location */
+            location?: string | null;
+            /** Language */
+            language: string;
+            /** Voice Persona */
+            voice_persona: string;
+            status: components["schemas"]["JobStatus"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Candidate Count
+             * @default 0
+             */
+            candidate_count: number;
+            /**
+             * Call Count
+             * @default 0
+             */
+            call_count: number;
+            /**
+             * Completed Count
+             * @default 0
+             */
+            completed_count: number;
+            /**
+             * Shortlisted Count
+             * @default 0
+             */
+            shortlisted_count: number;
+            /**
+             * In Flight Count
+             * @default 0
+             */
+            in_flight_count: number;
+        };
+        /** JobUpdate */
+        JobUpdate: {
+            /** Title */
+            title?: string | null;
+            /** Company Name */
+            company_name?: string | null;
+            /** Location */
+            location?: string | null;
+            /** Description Raw */
+            description_raw?: string | null;
+            /** Language */
+            language?: string | null;
+            /** Voice Persona */
+            voice_persona?: string | null;
+            /** Persona Name */
+            persona_name?: string | null;
+            /** Questions */
+            questions?: components["schemas"]["QuestionInput"][] | null;
+        };
+        /** LaunchOutreachReport */
+        LaunchOutreachReport: {
+            /** Launched */
+            launched: number;
+            /** Blocked */
+            blocked?: {
+                [key: string]: string;
+            }[];
+            /**
+             * Deferred
+             * @default 0
+             */
+            deferred: number;
+            /**
+             * Unresolved
+             * @default 0
+             */
+            unresolved: number;
+            /** Targets */
+            targets?: components["schemas"]["TargetOut"][];
+        };
+        /** LaunchReport */
+        LaunchReport: {
+            /** Launched */
+            launched: number;
+            /** Skipped */
+            skipped: number;
+            /** Blocked */
+            blocked?: {
+                [key: string]: string;
+            }[];
+            /** Calls */
+            calls?: components["schemas"]["CallAttemptOut"][];
+        };
+        /**
+         * LaunchRequest
+         * @description Ask to place calls for a set of candidates.
+         */
+        LaunchRequest: {
+            /** Candidate Ids */
+            candidate_ids?: string[] | null;
+            /**
+             * Max Retry Count
+             * @default 0
+             */
+            max_retry_count: number;
+            /**
+             * Retry Interval Hours
+             * @default 0
+             * @enum {integer}
+             */
+            retry_interval_hours: 0 | 3 | 6 | 9 | 12 | 24;
+        };
+        /**
+         * LinkConsentRequest
+         * @description Record that a sourced person is reachable on a consented number.
+         */
+        LinkConsentRequest: {
+            /**
+             * Allowlist Id
+             * Format: uuid
+             */
+            allowlist_id: string;
+        };
+        /** MetaResponse */
+        MetaResponse: {
+            /** Version */
+            version: string;
+            /** Environment */
+            environment: string;
+            voice: components["schemas"]["VoiceModeState"];
+            /** People Provider */
+            people_provider: string;
+            /** Calling Window */
+            calling_window: string;
+            /** Allowlist Size */
+            allowlist_size: number;
+        };
+        /**
+         * PhoneStatus
+         * @description What we actually know about reaching a prospect by phone.
+         * @enum {string}
+         */
+        PhoneStatus: "REVEALED" | "PRESENT_MASKED" | "ABSENT" | "UNKNOWN";
+        /**
+         * PreviewRequest
+         * @description Ask what the agent would be told, without saving anything.
+         *
+         *     Powers the live preview in the create-job form. Making the generated
+         *     script visible before any call is placed is what lets a recruiter
+         *     catch a bad prompt themselves, rather than hearing about it from a
+         *     confused candidate.
+         */
+        PreviewRequest: {
+            /**
+             * Title
+             * @default the role
+             */
+            title: string;
+            /**
+             * Company Name
+             * @default the company
+             */
+            company_name: string;
+            /** Location */
+            location?: string | null;
+            /**
+             * Description Raw
+             * @default
+             */
+            description_raw: string;
+            /**
+             * Language
+             * @default ENGLISH
+             */
+            language: string;
+            /** Questions */
+            questions: components["schemas"]["QuestionInput"][];
+        };
+        /** ProspectOut */
+        ProspectOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Full Name */
+            full_name: string;
+            /** Headline */
+            headline?: string | null;
+            /** Job Title */
+            job_title?: string | null;
+            /** Seniority */
+            seniority?: string | null;
+            /** Company Name */
+            company_name?: string | null;
+            /** Industry */
+            industry?: string | null;
+            /** Years Experience */
+            years_experience?: number | null;
+            /** Skills */
+            skills?: string[];
+            /** Location City */
+            location_city?: string | null;
+            /** Location Country */
+            location_country?: string | null;
+            /** Linkedin Url */
+            linkedin_url?: string | null;
+            phone_status: components["schemas"]["PhoneStatus"];
+            /**
+             * Consented
+             * @default false
+             */
+            consented: boolean;
+            /**
+             * Callable
+             * @default false
+             */
+            callable: boolean;
+            /**
+             * Deferrable
+             * @default false
+             */
+            deferrable: boolean;
+            /** Not Callable Reason */
+            not_callable_reason?: string | null;
+            /**
+             * Do Not Contact
+             * @default false
+             */
+            do_not_contact: boolean;
+            /** Fit Score */
+            fit_score?: number | null;
+            /** Fit Reasons */
+            fit_reasons?: {
+                [key: string]: unknown;
+            }[];
+        };
+        /**
+         * ProspectPage
+         * @description Everyone sourced so far, so a search outlives its browser tab.
+         *
+         *     Prospects were being persisted and then shown only in the response
+         *     that created them, which meant reloading the page discarded people
+         *     who had cost real provider credits to find. This is the durable view
+         *     of them.
+         */
+        ProspectPage: {
+            /** Prospects */
+            prospects?: components["schemas"]["ProspectOut"][];
+            /**
+             * Total
+             * @default 0
+             */
+            total: number;
+            /**
+             * Consented Count
+             * @default 0
+             */
+            consented_count: number;
+            /**
+             * Limit
+             * @default 50
+             */
+            limit: number;
+            /**
+             * Offset
+             * @default 0
+             */
+            offset: number;
+        };
+        /**
+         * QuestionInput
+         * @description One question as the recruiter defines it.
+         */
+        QuestionInput: {
+            /** Text */
+            text: string;
+            /** Label */
+            label: string;
+            /** @default STRING */
+            answer_type: components["schemas"]["AnswerType"];
+            /** Enum Options */
+            enum_options?: string[] | null;
+            /** Extraction Hint */
+            extraction_hint?: string | null;
+            /**
+             * Weight
+             * @default 1
+             */
+            weight: number;
+            /**
+             * Is Knockout
+             * @default false
+             */
+            is_knockout: boolean;
+            /** Scoring Rule */
+            scoring_rule?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** QuestionOut */
+        QuestionOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Order Index */
+            order_index: number;
+            /** Text */
+            text: string;
+            /** Label */
+            label: string;
+            /** Field Key */
+            field_key: string;
+            answer_type: components["schemas"]["AnswerType"];
+            /** Enum Options */
+            enum_options?: string[] | null;
+            /** Extraction Hint */
+            extraction_hint?: string | null;
+            /** Weight */
+            weight: number;
+            /** Is Knockout */
+            is_knockout: boolean;
+            /** Scoring Rule */
+            scoring_rule?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** ReadinessResponse */
+        ReadinessResponse: {
+            /** Ready */
+            ready: boolean;
+            /** Dependencies */
+            dependencies: components["schemas"]["DependencyState"][];
+        };
+        /**
+         * ResultRow
+         * @description One candidate's screening outcome.
+         */
+        ResultRow: {
+            /**
+             * Candidate Id
+             * Format: uuid
+             */
+            candidate_id: string;
+            /** Candidate Name */
+            candidate_name: string;
+            /** Mobile Masked */
+            mobile_masked: string;
+            decision: components["schemas"]["CandidateDecision"];
+            /** Call Id */
+            call_id?: string | null;
+            /** Status */
+            status: string;
+            /** Recording Url */
+            recording_url?: string | null;
+            /** Duration Seconds */
+            duration_seconds?: number | null;
+            /** Score */
+            score?: number | null;
+            /** Score Breakdown */
+            score_breakdown?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Disqualified
+             * @default false
+             */
+            disqualified: boolean;
+            /** Disqualified Reason */
+            disqualified_reason?: string | null;
+            /** Values */
+            values?: {
+                [key: string]: unknown;
+            };
+            /** Raw Values */
+            raw_values?: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * ResultsResponse
+         * @description Columns and rows together, so the table can build itself.
+         */
+        ResultsResponse: {
+            /** Columns */
+            columns: components["schemas"]["FieldSpec"][];
+            /** Rows */
+            rows: components["schemas"]["ResultRow"][];
+            /** Total */
+            total: number;
+            /** Completed */
+            completed: number;
+            /**
+             * In Progress
+             * @default false
+             */
+            in_progress: boolean;
+        };
+        /**
+         * SearchFilters
+         * @description What we will actually ask the provider for.
+         *
+         *     Deliberately provider-neutral. People Data Labs wants an
+         *     Elasticsearch query and Apollo wants flat parameters, so each adapter
+         *     owns that translation rather than leaking it into this shape.
+         */
+        SearchFilters: {
+            /** Titles */
+            titles?: string[];
+            /** Excluded Titles */
+            excluded_titles?: string[];
+            /** Seniorities */
+            seniorities?: ("ic" | "senior" | "lead" | "manager" | "director" | "vp" | "cxo")[];
+            /** Skills Required */
+            skills_required?: string[];
+            /** Skills Nice */
+            skills_nice?: string[];
+            /** Cities */
+            cities?: string[];
+            /**
+             * Country
+             * @default india
+             */
+            country: string;
+            /** Industries */
+            industries?: string[];
+            /** Company Size Bands */
+            company_size_bands?: string[];
+            /** Exclude Companies */
+            exclude_companies?: string[];
+            /** Min Years */
+            min_years?: number | null;
+            /** Max Years */
+            max_years?: number | null;
+            /**
+             * Require Phone
+             * @default true
+             */
+            require_phone: boolean;
+            /**
+             * Hiring Title
+             * @default
+             */
+            hiring_title: string;
+            /**
+             * Company Name
+             * @default
+             */
+            company_name: string;
+            /**
+             * Role Pitch
+             * @default
+             */
+            role_pitch: string;
+            /**
+             * Comp Range Text
+             * @default
+             */
+            comp_range_text: string;
+            /**
+             * Work Mode
+             * @default
+             */
+            work_mode: string;
+        };
+        /**
+         * SearchRequest
+         * @description Search either from a job description, from filters, or from both.
+         *
+         *     Both fields are optional individually because there are two honest
+         *     ways to start. A recruiter with a description wants it read for them;
+         *     a recruiter who already knows exactly who they are looking for should
+         *     not have to write a description to say so. Requiring ``jd_text``
+         *     turned the second route into a form you had to trick.
+         *
+         *     At least one of them must be present, since a search with neither is
+         *     a request to return the whole database.
+         */
+        SearchRequest: {
+            /**
+             * Jd Text
+             * @default
+             */
+            jd_text: string;
+            filters?: components["schemas"]["SearchFilters"] | null;
+            /**
+             * Limit
+             * @default 25
+             */
+            limit: number;
+        };
+        /**
+         * SearchResponse
+         * @description Everything the search screen needs, including how it was derived.
+         */
+        SearchResponse: {
+            /**
+             * Search Id
+             * Format: uuid
+             */
+            search_id: string;
+            /** Provider */
+            provider: string;
+            /** Provider Degraded To */
+            provider_degraded_to?: string | null;
+            /**
+             * Extraction Method
+             * @enum {string}
+             */
+            extraction_method: "llm" | "heuristic" | "manual";
+            filters: components["schemas"]["SearchFilters"];
+            /** Provider Query */
+            provider_query?: {
+                [key: string]: unknown;
+            };
+            /** Prospects */
+            prospects?: components["schemas"]["ProspectOut"][];
+            /** Total Estimated */
+            total_estimated?: number | null;
+            /**
+             * Credits Charged
+             * @default 0
+             */
+            credits_charged: number;
+            /**
+             * Cache Hit
+             * @default false
+             */
+            cache_hit: boolean;
+            /**
+             * Callable Count
+             * @default 0
+             */
+            callable_count: number;
+            /** Note */
+            note?: string | null;
+        };
+        /**
+         * SearchSummary
+         * @description One past search, enough to identify and revisit it.
+         */
+        SearchSummary: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Provider */
+            provider: string;
+            /** Provider Degraded To */
+            provider_degraded_to?: string | null;
+            /** Extraction Method */
+            extraction_method: string;
+            /**
+             * Result Count
+             * @default 0
+             */
+            result_count: number;
+            /**
+             * Credits Charged
+             * @default 0
+             */
+            credits_charged: number;
+            /**
+             * Label
+             * @default
+             */
+            label: string;
+        };
+        /** TargetOut */
+        TargetOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Prospect Id
+             * Format: uuid
+             */
+            prospect_id: string;
+            /**
+             * Prospect Name
+             * @default
+             */
+            prospect_name: string;
+            /**
+             * Mobile Masked
+             * @default
+             */
+            mobile_masked: string;
+            /**
+             * Allowlist Label
+             * @default
+             */
+            allowlist_label: string;
+            status: components["schemas"]["TargetStatus"];
+            /** Block Reason */
+            block_reason?: string | null;
+            /** Next Attempt At */
+            next_attempt_at?: string | null;
+            /**
+             * Call Status
+             * @default NOT_STARTED
+             */
+            call_status: string;
+            /** Recording Url */
+            recording_url?: string | null;
+            /** Values */
+            values?: {
+                [key: string]: unknown;
+            };
+            /** Raw Values */
+            raw_values?: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * TargetStatus
+         * @enum {string}
+         */
+        TargetStatus: "PENDING" | "DEFERRED" | "CALLING" | "DONE" | "BLOCKED" | "FAILED";
+        /** ValidationError */
+        ValidationError: {
+            /** Location */
+            loc: (string | number)[];
+            /** Message */
+            msg: string;
+            /** Error Type */
+            type: string;
+            /** Input */
+            input?: unknown;
+            /** Context */
+            ctx?: Record<string, never>;
+        };
+        /**
+         * VoiceModeState
+         * @description What the UI needs to describe the current data source truthfully.
+         */
+        VoiceModeState: {
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "live" | "mock";
+            /** Configured Mode */
+            configured_mode: string;
+            /** Degraded */
+            degraded: boolean;
+            /** Degrade Reason */
+            degrade_reason?: string | null;
+            /** Banner */
+            banner?: string | null;
+        };
     };
-    /** AllowlistEntryOut */
-    AllowlistEntryOut: {
-      /**
-       * Id
-       * Format: uuid
-       */
-      id: string;
-      /** E164 Masked */
-      e164_masked: string;
-      /** Label */
-      label: string;
-    };
-    /**
-     * AnswerType
-     * @description How an answer is coerced, rendered and scored.
-     *
-     *     Hunar returns every value as a string, so this is our declaration of
-     *     what the string is meant to represent. It drives the normaliser, the
-     *     column renderer and the scoring rules from one place.
-     * @enum {string}
-     */
-    AnswerType: "BOOLEAN" | "NUMBER" | "STRING" | "ENUM";
-    /** Body_import_candidates_api_v1_hiring_jobs__job_id__candidates_import_post */
-    Body_import_candidates_api_v1_hiring_jobs__job_id__candidates_import_post: {
-      /** File */
-      file: string;
-    };
-    /** CallAttemptOut */
-    CallAttemptOut: {
-      /**
-       * Id
-       * Format: uuid
-       */
-      id: string;
-      /** Candidate Id */
-      candidate_id?: string | null;
-      /** Hunar Call Id */
-      hunar_call_id?: string | null;
-      /** Status */
-      status: string;
-      /** Lifecycle Status */
-      lifecycle_status: string;
-      /** Engagement Status */
-      engagement_status?: string | null;
-      /** Answered By */
-      answered_by?: string | null;
-      /** Recording Url */
-      recording_url?: string | null;
-      /** Duration Seconds */
-      duration_seconds?: number | null;
-      /** Raw Result */
-      raw_result?: {
-        [key: string]: unknown;
-      } | null;
-      /** Normalized Result */
-      normalized_result?: {
-        [key: string]: unknown;
-      } | null;
-      /** Score */
-      score?: number | null;
-      /** Score Breakdown */
-      score_breakdown?: {
-        [key: string]: unknown;
-      } | null;
-      /**
-       * Disqualified
-       * @default false
-       */
-      disqualified: boolean;
-      /** Disqualified Reason */
-      disqualified_reason?: string | null;
-      /** Error Code */
-      error_code?: string | null;
-      /** Error Detail */
-      error_detail?: string | null;
-      /**
-       * Retry Count
-       * @default 0
-       */
-      retry_count: number;
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at: string;
-      /**
-       * Updated At
-       * Format: date-time
-       */
-      updated_at: string;
-    };
-    /**
-     * CallingPolicyOut
-     * @description What this deployment is permitted to do, stated plainly.
-     *
-     *     Surfaced to the UI so the calling policy is visible in the product
-     *     rather than buried in a README nobody opens. A recruiter looking at a
-     *     list of people it will not call deserves to see why in the same
-     *     screen.
-     */
-    CallingPolicyOut: {
-      /** Provider */
-      provider: string;
-      /** Provider Reveals Phone */
-      provider_reveals_phone: boolean;
-      /** Allowlist */
-      allowlist: components["schemas"]["AllowlistEntryOut"][];
-      /** Calling Hours Start */
-      calling_hours_start: string;
-      /** Calling Hours End */
-      calling_hours_end: string;
-      /** Calling Timezone */
-      calling_timezone: string;
-      /** Within Calling Hours */
-      within_calling_hours: boolean;
-    };
-    /**
-     * CampaignCreate
-     * @description Start an outreach round against a set of prospects.
-     */
-    CampaignCreate: {
-      /** Search Id */
-      search_id?: string | null;
-      /** Prospect Ids */
-      prospect_ids: string[];
-      /** Job Title */
-      job_title: string;
-      /** Company Name */
-      company_name: string;
-      /** Job City */
-      job_city?: string | null;
-      /** Work Mode */
-      work_mode?: string | null;
-      /** Role Pitch */
-      role_pitch: string;
-      /** Comp Range Text */
-      comp_range_text?: string | null;
-      /**
-       * Recruiter Name
-       * @default our recruiter
-       */
-      recruiter_name: string;
-    };
-    /** CampaignDetail */
-    CampaignDetail: {
-      /**
-       * Id
-       * Format: uuid
-       */
-      id: string;
-      /** Job Title */
-      job_title: string;
-      /** Company Name */
-      company_name: string;
-      /** Job City */
-      job_city?: string | null;
-      /** Status */
-      status: string;
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at: string;
-      /** Launched At */
-      launched_at?: string | null;
-      /**
-       * Target Count
-       * @default 0
-       */
-      target_count: number;
-      /**
-       * Completed Count
-       * @default 0
-       */
-      completed_count: number;
-      /**
-       * Interested Count
-       * @default 0
-       */
-      interested_count: number;
-      /**
-       * Blocked Count
-       * @default 0
-       */
-      blocked_count: number;
-      /**
-       * Role Pitch
-       * @default
-       */
-      role_pitch: string;
-      /** Comp Range Text */
-      comp_range_text?: string | null;
-      /**
-       * Recruiter Name
-       * @default
-       */
-      recruiter_name: string;
-      /** Work Mode */
-      work_mode?: string | null;
-      /** Columns */
-      columns?: {
-        [key: string]: unknown;
-      }[];
-      /** Targets */
-      targets?: components["schemas"]["TargetOut"][];
-      /**
-       * In Progress
-       * @default false
-       */
-      in_progress: boolean;
-      /** Script Preview */
-      script_preview?: {
-        [key: string]: string;
-      };
-    };
-    /** CampaignSummary */
-    CampaignSummary: {
-      /**
-       * Id
-       * Format: uuid
-       */
-      id: string;
-      /** Job Title */
-      job_title: string;
-      /** Company Name */
-      company_name: string;
-      /** Job City */
-      job_city?: string | null;
-      /** Status */
-      status: string;
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at: string;
-      /** Launched At */
-      launched_at?: string | null;
-      /**
-       * Target Count
-       * @default 0
-       */
-      target_count: number;
-      /**
-       * Completed Count
-       * @default 0
-       */
-      completed_count: number;
-      /**
-       * Interested Count
-       * @default 0
-       */
-      interested_count: number;
-      /**
-       * Blocked Count
-       * @default 0
-       */
-      blocked_count: number;
-    };
-    /** CandidateCreate */
-    CandidateCreate: {
-      /** Name */
-      name: string;
-      /** Mobile Number */
-      mobile_number: string;
-      /** Extra */
-      extra?: {
-        [key: string]: string;
-      };
-    };
-    /**
-     * CandidateDecision
-     * @enum {string}
-     */
-    CandidateDecision: "PENDING" | "SHORTLISTED" | "REJECTED";
-    /**
-     * CandidateImportReport
-     * @description Outcome of a spreadsheet import.
-     *
-     *     Rejected rows are returned with their reason rather than silently
-     *     dropped, because a recruiter who uploaded 200 rows and got 180
-     *     candidates needs to know which twenty were lost and why.
-     */
-    CandidateImportReport: {
-      /** Imported */
-      imported: number;
-      /** Skipped Duplicates */
-      skipped_duplicates: number;
-      /** Rejected */
-      rejected?: {
-        [key: string]: string;
-      }[];
-      /** Candidates */
-      candidates?: components["schemas"]["CandidateOut"][];
-    };
-    /** CandidateOut */
-    CandidateOut: {
-      /**
-       * Id
-       * Format: uuid
-       */
-      id: string;
-      /** Name */
-      name: string;
-      /** Mobile Number */
-      mobile_number: string;
-      /**
-       * Mobile Masked
-       * @default
-       */
-      mobile_masked: string;
-      /** Source */
-      source: string;
-      decision: components["schemas"]["CandidateDecision"];
-      /** Decision Note */
-      decision_note?: string | null;
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at: string;
-    };
-    /** DecisionUpdate */
-    DecisionUpdate: {
-      decision: components["schemas"]["CandidateDecision"];
-      /** Note */
-      note?: string | null;
-    };
-    /** DependencyState */
-    DependencyState: {
-      /** Name */
-      name: string;
-      /** Ok */
-      ok: boolean;
-      /** Detail */
-      detail?: string | null;
-    };
-    /**
-     * DraftQuestion
-     * @description One screening question the model proposed.
-     */
-    DraftQuestion: {
-      /**
-       * Label
-       * @description Short column heading, two or three words
-       */
-      label: string;
-      /**
-       * Text
-       * @description The question as the agent should speak it
-       */
-      text: string;
-      /**
-       * Answer Type
-       * @enum {string}
-       */
-      answer_type: "STRING" | "NUMBER" | "BOOLEAN" | "ENUM";
-      /**
-       * Enum Options
-       * @description Allowed answers. Only for ENUM, otherwise empty.
-       */
-      enum_options?: string[];
-      /**
-       * Weight
-       * @description Importance from 0 to 5
-       */
-      weight: number;
-      /**
-       * Is Knockout
-       * @description True only for genuine hard requirements stated in the description
-       */
-      is_knockout: boolean;
-      /**
-       * Minimum
-       * @description For a NUMBER question only. Copy the exact threshold the description states, so 'minimum 1 year of experience' gives 1 and 'at least 3 years' gives 3. Use null when the description states no threshold. Never use 0 as a stand-in for 'no threshold', because a minimum of zero excludes nobody. Always null for every other answer type.
-       */
-      minimum?: number | null;
-    };
-    /** ExtractFiltersRequest */
-    ExtractFiltersRequest: {
-      /** Jd Text */
-      jd_text: string;
-    };
-    /**
-     * ExtractRequest
-     * @description A pasted job description, to be turned into a filled-in form.
-     */
-    ExtractRequest: {
-      /** Jd Text */
-      jd_text: string;
-    };
-    /**
-     * ExtractionResult
-     * @description Filters, plus an honest account of where they came from.
-     */
-    ExtractionResult: {
-      filters: components["schemas"]["SearchFilters"];
-      /**
-       * Method
-       * @enum {string}
-       */
-      method: "llm" | "heuristic" | "manual";
-      /** Note */
-      note?: string | null;
-    };
-    /**
-     * FieldSpec
-     * @description One column of a results table.
-     *
-     *     Returned alongside the rows so the frontend can build a table for a
-     *     schema it has never seen. That is what lets one table component serve
-     *     screening answers and outreach answers without knowing which it is
-     *     looking at. ``system`` marks fields that are always present regardless
-     *     of what the operator asked for.
-     */
-    FieldSpec: {
-      /** Key */
-      key: string;
-      /** Label */
-      label: string;
-      answer_type: components["schemas"]["AnswerType"];
-      /** Enum Options */
-      enum_options?: string[] | null;
-      /**
-       * Weight
-       * @default 0
-       */
-      weight: number;
-      /**
-       * Is Knockout
-       * @default false
-       */
-      is_knockout: boolean;
-      /**
-       * System
-       * @default false
-       */
-      system: boolean;
-    };
-    /** HTTPValidationError */
-    HTTPValidationError: {
-      /** Detail */
-      detail?: components["schemas"]["ValidationError"][];
-    };
-    /** HealthResponse */
-    HealthResponse: {
-      /**
-       * Status
-       * @constant
-       */
-      status: "ok";
-      /** Version */
-      version: string;
-      /** Environment */
-      environment: string;
-    };
-    /** JobCreate */
-    JobCreate: {
-      /** Title */
-      title: string;
-      /** Company Name */
-      company_name: string;
-      /** Location */
-      location?: string | null;
-      /**
-       * Description Raw
-       * @default
-       */
-      description_raw: string;
-      /**
-       * Language
-       * @default ENGLISH
-       */
-      language: string;
-      /**
-       * Voice Persona
-       * @default NEHA
-       */
-      voice_persona: string;
-      /** Persona Name */
-      persona_name?: string | null;
-      /**
-       * Timezone
-       * @default Asia/Kolkata
-       */
-      timezone: string;
-      /** Questions */
-      questions: components["schemas"]["QuestionInput"][];
-    };
-    /** JobDetail */
-    JobDetail: {
-      /**
-       * Id
-       * Format: uuid
-       */
-      id: string;
-      /** Title */
-      title: string;
-      /** Company Name */
-      company_name: string;
-      /** Location */
-      location?: string | null;
-      /** Language */
-      language: string;
-      /** Voice Persona */
-      voice_persona: string;
-      status: components["schemas"]["JobStatus"];
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at: string;
-      /**
-       * Candidate Count
-       * @default 0
-       */
-      candidate_count: number;
-      /**
-       * Call Count
-       * @default 0
-       */
-      call_count: number;
-      /**
-       * Completed Count
-       * @default 0
-       */
-      completed_count: number;
-      /**
-       * Shortlisted Count
-       * @default 0
-       */
-      shortlisted_count: number;
-      /**
-       * In Flight Count
-       * @default 0
-       */
-      in_flight_count: number;
-      /** Description Raw */
-      description_raw: string;
-      /** Persona Name */
-      persona_name?: string | null;
-      /** Timezone */
-      timezone: string;
-      /** Hunar Agent Id */
-      hunar_agent_id?: string | null;
-      /** Agent Synced At */
-      agent_synced_at?: string | null;
-      /** Questions */
-      questions?: components["schemas"]["QuestionOut"][];
-      /** Field Spec */
-      field_spec?: components["schemas"]["FieldSpec"][];
-      preview?: components["schemas"]["AgentPreview"] | null;
-    };
-    /**
-     * JobDraft
-     * @description Everything the create-role form needs, derived from the description.
-     */
-    JobDraft: {
-      /** Title */
-      title: string;
-      /** Company Name */
-      company_name: string;
-      /** Location */
-      location: string;
-      /** Language */
-      language: string;
-      /** Voice Persona */
-      voice_persona: string;
-      /** Questions */
-      questions: components["schemas"]["DraftQuestion"][];
-      /**
-       * Source
-       * @default heuristic
-       * @enum {string}
-       */
-      source: "model" | "heuristic";
-      /** Note */
-      note?: string | null;
-    };
-    /**
-     * JobStatus
-     * @description Where a role is in its screening lifecycle.
-     * @enum {string}
-     */
-    JobStatus: "DRAFT" | "READY" | "CALLING" | "DONE" | "ARCHIVED";
-    /** JobSummary */
-    JobSummary: {
-      /**
-       * Id
-       * Format: uuid
-       */
-      id: string;
-      /** Title */
-      title: string;
-      /** Company Name */
-      company_name: string;
-      /** Location */
-      location?: string | null;
-      /** Language */
-      language: string;
-      /** Voice Persona */
-      voice_persona: string;
-      status: components["schemas"]["JobStatus"];
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at: string;
-      /**
-       * Candidate Count
-       * @default 0
-       */
-      candidate_count: number;
-      /**
-       * Call Count
-       * @default 0
-       */
-      call_count: number;
-      /**
-       * Completed Count
-       * @default 0
-       */
-      completed_count: number;
-      /**
-       * Shortlisted Count
-       * @default 0
-       */
-      shortlisted_count: number;
-      /**
-       * In Flight Count
-       * @default 0
-       */
-      in_flight_count: number;
-    };
-    /** JobUpdate */
-    JobUpdate: {
-      /** Title */
-      title?: string | null;
-      /** Company Name */
-      company_name?: string | null;
-      /** Location */
-      location?: string | null;
-      /** Description Raw */
-      description_raw?: string | null;
-      /** Language */
-      language?: string | null;
-      /** Voice Persona */
-      voice_persona?: string | null;
-      /** Persona Name */
-      persona_name?: string | null;
-      /** Questions */
-      questions?: components["schemas"]["QuestionInput"][] | null;
-    };
-    /** LaunchOutreachReport */
-    LaunchOutreachReport: {
-      /** Launched */
-      launched: number;
-      /** Blocked */
-      blocked?: {
-        [key: string]: string;
-      }[];
-      /**
-       * Deferred
-       * @default 0
-       */
-      deferred: number;
-      /**
-       * Unresolved
-       * @default 0
-       */
-      unresolved: number;
-      /** Targets */
-      targets?: components["schemas"]["TargetOut"][];
-    };
-    /** LaunchReport */
-    LaunchReport: {
-      /** Launched */
-      launched: number;
-      /** Skipped */
-      skipped: number;
-      /** Blocked */
-      blocked?: {
-        [key: string]: string;
-      }[];
-      /** Calls */
-      calls?: components["schemas"]["CallAttemptOut"][];
-    };
-    /**
-     * LaunchRequest
-     * @description Ask to place calls for a set of candidates.
-     */
-    LaunchRequest: {
-      /** Candidate Ids */
-      candidate_ids?: string[] | null;
-      /**
-       * Max Retry Count
-       * @default 0
-       */
-      max_retry_count: number;
-      /**
-       * Retry Interval Hours
-       * @default 0
-       * @enum {integer}
-       */
-      retry_interval_hours: 0 | 3 | 6 | 9 | 12 | 24;
-    };
-    /**
-     * LinkConsentRequest
-     * @description Record that a sourced person is reachable on a consented number.
-     */
-    LinkConsentRequest: {
-      /**
-       * Allowlist Id
-       * Format: uuid
-       */
-      allowlist_id: string;
-    };
-    /** MetaResponse */
-    MetaResponse: {
-      /** Version */
-      version: string;
-      /** Environment */
-      environment: string;
-      voice: components["schemas"]["VoiceModeState"];
-      /** People Provider */
-      people_provider: string;
-      /** Calling Window */
-      calling_window: string;
-      /** Allowlist Size */
-      allowlist_size: number;
-    };
-    /**
-     * PhoneStatus
-     * @description What we actually know about reaching a prospect by phone.
-     * @enum {string}
-     */
-    PhoneStatus: "REVEALED" | "PRESENT_MASKED" | "ABSENT" | "UNKNOWN";
-    /**
-     * PreviewRequest
-     * @description Ask what the agent would be told, without saving anything.
-     *
-     *     Powers the live preview in the create-job form. Making the generated
-     *     script visible before any call is placed is what lets a recruiter
-     *     catch a bad prompt themselves, rather than hearing about it from a
-     *     confused candidate.
-     */
-    PreviewRequest: {
-      /**
-       * Title
-       * @default the role
-       */
-      title: string;
-      /**
-       * Company Name
-       * @default the company
-       */
-      company_name: string;
-      /** Location */
-      location?: string | null;
-      /**
-       * Description Raw
-       * @default
-       */
-      description_raw: string;
-      /**
-       * Language
-       * @default ENGLISH
-       */
-      language: string;
-      /** Questions */
-      questions: components["schemas"]["QuestionInput"][];
-    };
-    /** ProspectOut */
-    ProspectOut: {
-      /**
-       * Id
-       * Format: uuid
-       */
-      id: string;
-      /** Full Name */
-      full_name: string;
-      /** Headline */
-      headline?: string | null;
-      /** Job Title */
-      job_title?: string | null;
-      /** Seniority */
-      seniority?: string | null;
-      /** Company Name */
-      company_name?: string | null;
-      /** Industry */
-      industry?: string | null;
-      /** Years Experience */
-      years_experience?: number | null;
-      /** Skills */
-      skills?: string[];
-      /** Location City */
-      location_city?: string | null;
-      /** Location Country */
-      location_country?: string | null;
-      /** Linkedin Url */
-      linkedin_url?: string | null;
-      phone_status: components["schemas"]["PhoneStatus"];
-      /**
-       * Consented
-       * @default false
-       */
-      consented: boolean;
-      /**
-       * Callable
-       * @default false
-       */
-      callable: boolean;
-      /**
-       * Deferrable
-       * @default false
-       */
-      deferrable: boolean;
-      /** Not Callable Reason */
-      not_callable_reason?: string | null;
-      /**
-       * Do Not Contact
-       * @default false
-       */
-      do_not_contact: boolean;
-      /** Fit Score */
-      fit_score?: number | null;
-      /** Fit Reasons */
-      fit_reasons?: {
-        [key: string]: unknown;
-      }[];
-    };
-    /**
-     * ProspectPage
-     * @description Everyone sourced so far, so a search outlives its browser tab.
-     *
-     *     Prospects were being persisted and then shown only in the response
-     *     that created them, which meant reloading the page discarded people
-     *     who had cost real provider credits to find. This is the durable view
-     *     of them.
-     */
-    ProspectPage: {
-      /** Prospects */
-      prospects?: components["schemas"]["ProspectOut"][];
-      /**
-       * Total
-       * @default 0
-       */
-      total: number;
-      /**
-       * Consented Count
-       * @default 0
-       */
-      consented_count: number;
-      /**
-       * Limit
-       * @default 50
-       */
-      limit: number;
-      /**
-       * Offset
-       * @default 0
-       */
-      offset: number;
-    };
-    /**
-     * QuestionInput
-     * @description One question as the recruiter defines it.
-     */
-    QuestionInput: {
-      /** Text */
-      text: string;
-      /** Label */
-      label: string;
-      /** @default STRING */
-      answer_type: components["schemas"]["AnswerType"];
-      /** Enum Options */
-      enum_options?: string[] | null;
-      /** Extraction Hint */
-      extraction_hint?: string | null;
-      /**
-       * Weight
-       * @default 1
-       */
-      weight: number;
-      /**
-       * Is Knockout
-       * @default false
-       */
-      is_knockout: boolean;
-      /** Scoring Rule */
-      scoring_rule?: {
-        [key: string]: unknown;
-      } | null;
-    };
-    /** QuestionOut */
-    QuestionOut: {
-      /**
-       * Id
-       * Format: uuid
-       */
-      id: string;
-      /** Order Index */
-      order_index: number;
-      /** Text */
-      text: string;
-      /** Label */
-      label: string;
-      /** Field Key */
-      field_key: string;
-      answer_type: components["schemas"]["AnswerType"];
-      /** Enum Options */
-      enum_options?: string[] | null;
-      /** Extraction Hint */
-      extraction_hint?: string | null;
-      /** Weight */
-      weight: number;
-      /** Is Knockout */
-      is_knockout: boolean;
-      /** Scoring Rule */
-      scoring_rule?: {
-        [key: string]: unknown;
-      } | null;
-    };
-    /** ReadinessResponse */
-    ReadinessResponse: {
-      /** Ready */
-      ready: boolean;
-      /** Dependencies */
-      dependencies: components["schemas"]["DependencyState"][];
-    };
-    /**
-     * ResultRow
-     * @description One candidate's screening outcome.
-     */
-    ResultRow: {
-      /**
-       * Candidate Id
-       * Format: uuid
-       */
-      candidate_id: string;
-      /** Candidate Name */
-      candidate_name: string;
-      /** Mobile Masked */
-      mobile_masked: string;
-      decision: components["schemas"]["CandidateDecision"];
-      /** Call Id */
-      call_id?: string | null;
-      /** Status */
-      status: string;
-      /** Recording Url */
-      recording_url?: string | null;
-      /** Duration Seconds */
-      duration_seconds?: number | null;
-      /** Score */
-      score?: number | null;
-      /** Score Breakdown */
-      score_breakdown?: {
-        [key: string]: unknown;
-      } | null;
-      /**
-       * Disqualified
-       * @default false
-       */
-      disqualified: boolean;
-      /** Disqualified Reason */
-      disqualified_reason?: string | null;
-      /** Values */
-      values?: {
-        [key: string]: unknown;
-      };
-      /** Raw Values */
-      raw_values?: {
-        [key: string]: unknown;
-      };
-    };
-    /**
-     * ResultsResponse
-     * @description Columns and rows together, so the table can build itself.
-     */
-    ResultsResponse: {
-      /** Columns */
-      columns: components["schemas"]["FieldSpec"][];
-      /** Rows */
-      rows: components["schemas"]["ResultRow"][];
-      /** Total */
-      total: number;
-      /** Completed */
-      completed: number;
-      /**
-       * In Progress
-       * @default false
-       */
-      in_progress: boolean;
-    };
-    /**
-     * SearchFilters
-     * @description What we will actually ask the provider for.
-     *
-     *     Deliberately provider-neutral. People Data Labs wants an
-     *     Elasticsearch query and Apollo wants flat parameters, so each adapter
-     *     owns that translation rather than leaking it into this shape.
-     */
-    SearchFilters: {
-      /** Titles */
-      titles?: string[];
-      /** Excluded Titles */
-      excluded_titles?: string[];
-      /** Seniorities */
-      seniorities?: (
-        "ic" | "senior" | "lead" | "manager" | "director" | "vp" | "cxo"
-      )[];
-      /** Skills Required */
-      skills_required?: string[];
-      /** Skills Nice */
-      skills_nice?: string[];
-      /** Cities */
-      cities?: string[];
-      /**
-       * Country
-       * @default india
-       */
-      country: string;
-      /** Industries */
-      industries?: string[];
-      /** Company Size Bands */
-      company_size_bands?: string[];
-      /** Exclude Companies */
-      exclude_companies?: string[];
-      /** Min Years */
-      min_years?: number | null;
-      /** Max Years */
-      max_years?: number | null;
-      /**
-       * Require Phone
-       * @default true
-       */
-      require_phone: boolean;
-      /**
-       * Hiring Title
-       * @default
-       */
-      hiring_title: string;
-      /**
-       * Company Name
-       * @default
-       */
-      company_name: string;
-      /**
-       * Role Pitch
-       * @default
-       */
-      role_pitch: string;
-      /**
-       * Comp Range Text
-       * @default
-       */
-      comp_range_text: string;
-      /**
-       * Work Mode
-       * @default
-       */
-      work_mode: string;
-    };
-    /**
-     * SearchRequest
-     * @description Search either from a job description, from filters, or from both.
-     *
-     *     Both fields are optional individually because there are two honest
-     *     ways to start. A recruiter with a description wants it read for them;
-     *     a recruiter who already knows exactly who they are looking for should
-     *     not have to write a description to say so. Requiring ``jd_text``
-     *     turned the second route into a form you had to trick.
-     *
-     *     At least one of them must be present, since a search with neither is
-     *     a request to return the whole database.
-     */
-    SearchRequest: {
-      /**
-       * Jd Text
-       * @default
-       */
-      jd_text: string;
-      filters?: components["schemas"]["SearchFilters"] | null;
-      /**
-       * Limit
-       * @default 25
-       */
-      limit: number;
-    };
-    /**
-     * SearchResponse
-     * @description Everything the search screen needs, including how it was derived.
-     */
-    SearchResponse: {
-      /**
-       * Search Id
-       * Format: uuid
-       */
-      search_id: string;
-      /** Provider */
-      provider: string;
-      /** Provider Degraded To */
-      provider_degraded_to?: string | null;
-      /**
-       * Extraction Method
-       * @enum {string}
-       */
-      extraction_method: "llm" | "heuristic" | "manual";
-      filters: components["schemas"]["SearchFilters"];
-      /** Provider Query */
-      provider_query?: {
-        [key: string]: unknown;
-      };
-      /** Prospects */
-      prospects?: components["schemas"]["ProspectOut"][];
-      /** Total Estimated */
-      total_estimated?: number | null;
-      /**
-       * Credits Charged
-       * @default 0
-       */
-      credits_charged: number;
-      /**
-       * Cache Hit
-       * @default false
-       */
-      cache_hit: boolean;
-      /**
-       * Callable Count
-       * @default 0
-       */
-      callable_count: number;
-      /** Note */
-      note?: string | null;
-    };
-    /**
-     * SearchSummary
-     * @description One past search, enough to identify and revisit it.
-     */
-    SearchSummary: {
-      /**
-       * Id
-       * Format: uuid
-       */
-      id: string;
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at: string;
-      /** Provider */
-      provider: string;
-      /** Provider Degraded To */
-      provider_degraded_to?: string | null;
-      /** Extraction Method */
-      extraction_method: string;
-      /**
-       * Result Count
-       * @default 0
-       */
-      result_count: number;
-      /**
-       * Credits Charged
-       * @default 0
-       */
-      credits_charged: number;
-      /**
-       * Label
-       * @default
-       */
-      label: string;
-    };
-    /** TargetOut */
-    TargetOut: {
-      /**
-       * Id
-       * Format: uuid
-       */
-      id: string;
-      /**
-       * Prospect Id
-       * Format: uuid
-       */
-      prospect_id: string;
-      /**
-       * Prospect Name
-       * @default
-       */
-      prospect_name: string;
-      /**
-       * Mobile Masked
-       * @default
-       */
-      mobile_masked: string;
-      /**
-       * Allowlist Label
-       * @default
-       */
-      allowlist_label: string;
-      status: components["schemas"]["TargetStatus"];
-      /** Block Reason */
-      block_reason?: string | null;
-      /** Next Attempt At */
-      next_attempt_at?: string | null;
-      /**
-       * Call Status
-       * @default NOT_STARTED
-       */
-      call_status: string;
-      /** Recording Url */
-      recording_url?: string | null;
-      /** Values */
-      values?: {
-        [key: string]: unknown;
-      };
-      /** Raw Values */
-      raw_values?: {
-        [key: string]: unknown;
-      };
-    };
-    /**
-     * TargetStatus
-     * @enum {string}
-     */
-    TargetStatus:
-      "PENDING" | "DEFERRED" | "CALLING" | "DONE" | "BLOCKED" | "FAILED";
-    /** ValidationError */
-    ValidationError: {
-      /** Location */
-      loc: (string | number)[];
-      /** Message */
-      msg: string;
-      /** Error Type */
-      type: string;
-      /** Input */
-      input?: unknown;
-      /** Context */
-      ctx?: Record<string, never>;
-    };
-    /**
-     * VoiceModeState
-     * @description What the UI needs to describe the current data source truthfully.
-     */
-    VoiceModeState: {
-      /**
-       * Mode
-       * @enum {string}
-       */
-      mode: "live" | "mock";
-      /** Configured Mode */
-      configured_mode: string;
-      /** Degraded */
-      degraded: boolean;
-      /** Degrade Reason */
-      degrade_reason?: string | null;
-      /** Banner */
-      banner?: string | null;
-    };
-  };
-  responses: never;
-  parameters: never;
-  requestBodies: never;
-  headers: never;
-  pathItems: never;
+    responses: never;
+    parameters: never;
+    requestBodies: never;
+    headers: never;
+    pathItems: never;
 }
 export type $defs = Record<string, never>;
 export interface operations {
-  healthz_healthz_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HealthResponse"];
-        };
-      };
-    };
-  };
-  readyz_readyz_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ReadinessResponse"];
-        };
-      };
-    };
-  };
-  meta_meta_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["MetaResponse"];
-        };
-      };
-    };
-  };
-  extract_from_description_api_v1_hiring_jobs_extract_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["ExtractRequest"];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["JobDraft"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  preview_agent_api_v1_hiring_jobs_preview_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["PreviewRequest"];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["AgentPreview"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  list_jobs_api_v1_hiring_jobs_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["JobSummary"][];
-        };
-      };
-    };
-  };
-  create_job_api_v1_hiring_jobs_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["JobCreate"];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["JobDetail"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  get_job_api_v1_hiring_jobs__job_id__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        job_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["JobDetail"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  archive_job_api_v1_hiring_jobs__job_id__delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        job_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  update_job_api_v1_hiring_jobs__job_id__patch: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        job_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["JobUpdate"];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["JobDetail"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  list_candidates_api_v1_hiring_jobs__job_id__candidates_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        job_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["CandidateOut"][];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  add_candidate_api_v1_hiring_jobs__job_id__candidates_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        job_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["CandidateCreate"];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["CandidateOut"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  import_candidates_api_v1_hiring_jobs__job_id__candidates_import_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        job_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "multipart/form-data": components["schemas"]["Body_import_candidates_api_v1_hiring_jobs__job_id__candidates_import_post"];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["CandidateImportReport"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  set_decision_api_v1_hiring_jobs__job_id__candidates__candidate_id__decision_patch: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        job_id: string;
-        candidate_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["DecisionUpdate"];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["CandidateOut"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  delete_candidate_api_v1_hiring_jobs__job_id__candidates__candidate_id__delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        job_id: string;
-        candidate_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  launch_api_v1_hiring_jobs__job_id__calls_launch_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        job_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["LaunchRequest"];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["LaunchReport"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  list_calls_api_v1_hiring_jobs__job_id__calls_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        job_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["CallAttemptOut"][];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  refresh_calls_api_v1_hiring_jobs__job_id__calls_refresh_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        job_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["CallAttemptOut"][];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  results_api_v1_hiring_jobs__job_id__results_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        job_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ResultsResponse"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  extract_api_v1_people_extract_filters_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["ExtractFiltersRequest"];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ExtractionResult"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  search_api_v1_people_search_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["SearchRequest"];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["SearchResponse"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  policy_api_v1_people_policy_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["CallingPolicyOut"];
-        };
-      };
-    };
-  };
-  link_consent_api_v1_people_prospects__prospect_id__consent_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        prospect_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["LinkConsentRequest"];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ProspectOut"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  unlink_consent_api_v1_people_prospects__prospect_id__consent_delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        prospect_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ProspectOut"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  seed_api_v1_people_allowlist_seed_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["CallingPolicyOut"];
-        };
-      };
-    };
-  };
-  list_prospects_api_v1_people_prospects_get: {
-    parameters: {
-      query?: {
-        limit?: number;
-        offset?: number;
-        search_id?: string | null;
-        consented_only?: boolean;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ProspectPage"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  list_searches_api_v1_people_searches_get: {
-    parameters: {
-      query?: {
-        limit?: number;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["SearchSummary"][];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  list_campaigns_api_v1_campaigns_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["CampaignSummary"][];
-        };
-      };
-    };
-  };
-  create_campaign_api_v1_campaigns_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["CampaignCreate"];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["CampaignDetail"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  get_campaign_api_v1_campaigns__campaign_id__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        campaign_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["CampaignDetail"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  delete_campaign_api_v1_campaigns__campaign_id__delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        campaign_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  launch_api_v1_campaigns__campaign_id__launch_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        campaign_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["LaunchOutreachReport"];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  receive_webhooks_hunar__callback_token___event_slug__post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        callback_token: string;
-        event_slug: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            [key: string]: string;
-          };
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
+    healthz_healthz_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HealthResponse"];
+                };
+            };
+        };
+    };
+    readyz_readyz_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReadinessResponse"];
+                };
+            };
+        };
+    };
+    meta_meta_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaResponse"];
+                };
+            };
+        };
+    };
+    extract_from_description_api_v1_hiring_jobs_extract_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExtractRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobDraft"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    preview_agent_api_v1_hiring_jobs_preview_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreviewRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentPreview"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_jobs_api_v1_hiring_jobs_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobSummary"][];
+                };
+            };
+        };
+    };
+    create_job_api_v1_hiring_jobs_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["JobCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_job_api_v1_hiring_jobs__job_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    archive_job_api_v1_hiring_jobs__job_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_job_api_v1_hiring_jobs__job_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["JobUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_candidates_api_v1_hiring_jobs__job_id__candidates_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CandidateOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_candidate_api_v1_hiring_jobs__job_id__candidates_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CandidateCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CandidateOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_candidates_api_v1_hiring_jobs__job_id__candidates_import_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_import_candidates_api_v1_hiring_jobs__job_id__candidates_import_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CandidateImportReport"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_decision_api_v1_hiring_jobs__job_id__candidates__candidate_id__decision_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+                candidate_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DecisionUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CandidateOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_candidate_api_v1_hiring_jobs__job_id__candidates__candidate_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+                candidate_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    launch_api_v1_hiring_jobs__job_id__calls_launch_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LaunchRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LaunchReport"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_calls_api_v1_hiring_jobs__job_id__calls_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CallAttemptOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    refresh_calls_api_v1_hiring_jobs__job_id__calls_refresh_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CallAttemptOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    results_api_v1_hiring_jobs__job_id__results_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResultsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    extract_api_v1_people_extract_filters_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExtractFiltersRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExtractionResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_api_v1_people_search_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SearchRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    policy_api_v1_people_policy_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CallingPolicyOut"];
+                };
+            };
+        };
+    };
+    link_consent_api_v1_people_prospects__prospect_id__consent_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                prospect_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LinkConsentRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProspectOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unlink_consent_api_v1_people_prospects__prospect_id__consent_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                prospect_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProspectOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    seed_api_v1_people_allowlist_seed_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CallingPolicyOut"];
+                };
+            };
+        };
+    };
+    list_prospects_api_v1_people_prospects_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+                search_id?: string | null;
+                consented_only?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProspectPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_searches_api_v1_people_searches_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_campaigns_api_v1_campaigns_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignSummary"][];
+                };
+            };
+        };
+    };
+    create_campaign_api_v1_campaigns_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CampaignCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_campaign_api_v1_campaigns__campaign_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                campaign_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_campaign_api_v1_campaigns__campaign_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                campaign_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    launch_api_v1_campaigns__campaign_id__launch_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                campaign_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LaunchOutreachReport"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    receive_webhooks_hunar__callback_token___event_slug__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                callback_token: string;
+                event_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
 }

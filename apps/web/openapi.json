@@ -2096,10 +2096,6 @@
             "type": "string",
             "title": "Name"
           },
-          "mobile_number": {
-            "type": "string",
-            "title": "Mobile Number"
-          },
           "mobile_masked": {
             "type": "string",
             "title": "Mobile Masked",
@@ -2133,7 +2129,6 @@
         "required": [
           "id",
           "name",
-          "mobile_number",
           "source",
           "decision",
           "created_at"

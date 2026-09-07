@@ -32,6 +32,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from app import __version__
 from app.core.config import Settings, get_settings
 from app.core.errors import register_exception_handlers
+from app.core.gate import install_demo_gate
 from app.core.logging import bind_request_id, configure_logging, register_secret
 from app.db import build_engine, create_session_factory
 from app.deps import build_hunar_client
@@ -174,6 +175,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 status=response.status_code,
             )
         return response
+
+    # Before the routers, so nothing that reads real data is reachable
+    # without the shared password. Installed only when one is configured,
+    # which keeps local development unprompted while making a public
+    # deployment closed by default.
+    install_demo_gate(app, settings)
 
     register_exception_handlers(app)
 

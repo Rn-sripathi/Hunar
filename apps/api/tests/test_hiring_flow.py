@@ -8,11 +8,16 @@ prove is that the pieces fit, which unit tests deliberately do not.
 from __future__ import annotations
 
 import asyncio
+import json
+import uuid
 from typing import Any
 
 import httpx
 import pytest
 from conftest import API, sample_job
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
+from app.hiring.models import Candidate
 
 
 async def create_job(client: httpx.AsyncClient, **overrides: Any) -> dict[str, Any]:
@@ -135,10 +140,41 @@ class TestJobLifecycle:
 
 
 class TestCandidates:
-    async def test_normalises_an_indian_mobile_number(self, client: httpx.AsyncClient) -> None:
+    async def test_normalises_an_indian_mobile_number(
+        self,
+        client: httpx.AsyncClient,
+        session_factory: async_sessionmaker[AsyncSession],
+    ) -> None:
+        """Asserted against the stored value, not the response.
+
+        The API deliberately no longer returns a full number, so the
+        invariant has to be checked where it actually matters: what got
+        written down, and therefore what will be dialled.
+        """
         job = await create_job(client)
         candidate = await add_candidate(client, job["id"], "Asha", "+91 98765 43210")
-        assert candidate["mobile_number"] == "+919876543210"
+
+        async with session_factory() as session:
+            stored = await session.get(Candidate, uuid.UUID(candidate["id"]))
+            assert stored is not None
+            assert stored.mobile_number == "+919876543210"
+
+    async def test_the_full_number_never_leaves_the_server(self, client: httpx.AsyncClient) -> None:
+        """A deployment served this publicly once. Never again.
+
+        Masking is worthless while the unmasked value travels beside it,
+        so the field is absent from the response rather than merely
+        ignored by the UI.
+        """
+        job = await create_job(client)
+        candidate = await add_candidate(client, job["id"], "Asha", "+919876543210")
+        assert "mobile_number" not in candidate
+
+        listing = (await client.get(f"{API}/jobs/{job['id']}/candidates")).json()
+        assert listing
+        for row in listing:
+            assert "mobile_number" not in row
+            assert "9876543210" not in json.dumps(row)
 
     async def test_masks_the_number_for_display(self, client: httpx.AsyncClient) -> None:
         """Nobody needs a full phone number rendered in a browser."""
@@ -178,8 +214,8 @@ class TestCandidates:
         report = response.json()
         assert report["imported"] == 3
         assert report["rejected"] == []
-        # An unmapped column rides along so a prompt can reference it.
-        assert report["candidates"][0]["mobile_number"] == "+919876543210"
+        # Masked, because the full number does not leave the server.
+        assert report["candidates"][0]["mobile_masked"].endswith("3210")
 
     async def test_import_reports_bad_rows_rather_than_dropping_them(
         self, client: httpx.AsyncClient

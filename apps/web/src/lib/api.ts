@@ -130,6 +130,10 @@ async function request<T>(
   let response: Response;
   try {
     response = await fetch(url, {
+      // The deployment's password cookie lives on the API's origin, which
+      // is a different site from this one, so it is only sent when
+      // credentials are included explicitly.
+      credentials: "include",
       ...init,
       headers: {
         Accept: "application/json",
@@ -159,6 +163,21 @@ async function request<T>(
 const json = (body: unknown): RequestInit => ({ body: JSON.stringify(body) });
 
 export const api = {
+  /**
+   * Exchange the shared demo password for a session cookie.
+   *
+   * The deployed API holds real candidates' names and phone numbers, so
+   * it is not open to anyone who finds the URL. This is a shared
+   * password, not authentication: there are no accounts and no record of
+   * who did what.
+   */
+  unlock: (password: string) =>
+    request<{ status: string }>(
+      "/api/unlock",
+      { method: "POST", ...json({ password }) },
+      true,
+    ),
+
   /** Runtime facts, including whether the data shown is simulated. */
   meta: () => request<MetaResponse>("/meta", { method: "GET" }, true),
 

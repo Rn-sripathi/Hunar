@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { DemoBanner } from "@/components/demo-banner";
+import { UnlockGate } from "@/components/unlock-gate";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -96,7 +97,9 @@ export function AppShell({ children }: { children: ReactNode }) {
       <DemoBanner />
 
       <main className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-6 sm:px-6 sm:py-8">
-        {children}
+        {/* Wraps every screen, so a new page cannot be added that
+            forgets to ask. */}
+        <UnlockGate>{children}</UnlockGate>
       </main>
 
       <footer className="text-muted-foreground border-t px-4 py-4 text-xs sm:px-6">
