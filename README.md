@@ -356,4 +356,5 @@ docs/build-plan.md               the plan this was built against
 docs/attendance-without-apps.md  the third question, answered
 scripts/spike.py                 day-zero API probe, run before product code
 scripts/dump_openapi.py          regenerates the frontend types from the backend
+scripts/build_docs_pdf.py        renders this README to a print-quality PDF
 ```
