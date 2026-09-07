@@ -49,7 +49,13 @@ body {
 /* ── title page ─────────────────────────────────────── */
 .cover {
   page-break-after: always;
-  padding-top: 44mm;
+  /* Deliberately left to flow rather than stretched to the printable
+     height. Pinning the footer to the bottom of a fixed 246mm box
+     overflowed once the PDF's own footer template took its share, and
+     split the title page in two: the eyebrow alone on page one, the
+     title and links on page two. Trailing space under a title page is
+     normal; a title page in two halves is not. */
+  padding-top: 30mm;
 }
 .cover .eyebrow {
   font-family: "Inter", "Segoe UI", system-ui, sans-serif;
@@ -59,6 +65,11 @@ body {
   color: var(--muted);
 }
 .cover h1 {
+  /* The global h1 rule forces a page break before every section title,
+     and the cover's own title inherited it — so the title page broke
+     immediately after the eyebrow, leaving the name and the links on
+     page two. This is the whole reason the cover looked half empty. */
+  page-break-before: avoid;
   font-family: "Inter", "Segoe UI", system-ui, sans-serif;
   font-size: 30pt;
   line-height: 1.12;
@@ -91,7 +102,7 @@ body {
 .cover dt { color: var(--muted); }
 .cover dd { margin: 0; word-break: break-all; }
 .cover .foot {
-  margin-top: 34mm;
+  margin-top: 26mm;
   font-family: "Inter", "Segoe UI", system-ui, sans-serif;
   font-size: 8.5pt;
   color: var(--muted);
@@ -113,6 +124,9 @@ h1 {
   border-bottom: 2px solid var(--accent);
   page-break-before: always;
 }
+/* Keep a heading with the text that follows it, so a page never ends on
+   a title alone. */
+h2 + *, h3 + *, h1 + * { page-break-before: avoid; }
 h1.first { page-break-before: avoid; }
 h2 {
   font-size: 13.5pt;
@@ -140,8 +154,13 @@ table {
   margin: 12px 0 16px;
   font-family: "Inter", "Segoe UI", system-ui, sans-serif;
   font-size: 8.8pt;
-  page-break-inside: avoid;
 }
+/* Rows stay whole, the table itself may split, and the header repeats on
+   each page it continues onto. Forbidding the table from splitting meant
+   any long one jumped wholesale to the next page and left the remainder
+   of the previous one empty. */
+thead { display: table-header-group; }
+tr { page-break-inside: avoid; }
 th {
   text-align: left;
   font-weight: 600;
@@ -175,7 +194,6 @@ pre {
   overflow: visible;
   white-space: pre-wrap;
   word-break: break-word;
-  page-break-inside: avoid;
   margin: 10px 0 14px;
 }
 pre code {
