@@ -30,6 +30,7 @@ from app.main import create_app
 
 PASSWORD = "a-shared-demo-password"
 SECRET = "a-session-secret-long-enough-to-be-real"
+ORIGIN = "https://frontend.example"
 
 
 @pytest.fixture
@@ -190,6 +191,69 @@ class TestGate:
         gated_client.cookies.set(COOKIE_NAME, issue_token("some-other-secret"), domain="testserver")
         response = await gated_client.get("/api/v1/people/policy")
         assert response.status_code == 401
+
+
+class TestRejectionsStayLegibleToBrowsers:
+    """A 401 the browser cannot read is worse than no gate at all.
+
+    The gate shipped installed *after* the CORS middleware, which in
+    Starlette means it ran outside it. Its 401 therefore carried no
+    Access-Control-Allow-Origin header: the preflight passed, the real
+    response was discarded by the browser, and the frontend could not
+    read the one status code that tells it to ask for a password. The
+    deployed app reported "cannot reach the API" while the API was
+    answering correctly.
+
+    Anything able to reject a request must sit inside CORS.
+    """
+
+    @pytest.fixture
+    def gated_settings(self) -> Settings:
+        return Settings(
+            environment="local",
+            log_level="WARNING",
+            hunar_mode=HunarMode.MOCK,
+            hunar_api_key="test-key-not-real",
+            people_provider=PeopleProvider.FIXTURE,
+            database_url="sqlite+aiosqlite:///:memory:",
+            public_api_base_url="https://test.invalid",
+            openai_api_key="",
+            demo_password=PASSWORD,
+            session_secret=SECRET,
+            cors_origins=ORIGIN,
+        )
+
+    async def test_the_locked_401_carries_cors_headers(
+        self, gated_client: httpx.AsyncClient
+    ) -> None:
+        response = await gated_client.get("/api/v1/hiring/jobs", headers={"Origin": ORIGIN})
+        assert response.status_code == 401
+        assert response.headers.get("access-control-allow-origin") == ORIGIN, (
+            "without this header the browser discards the body, so the "
+            "frontend never learns it needs a password"
+        )
+        assert response.headers.get("access-control-allow-credentials") == "true"
+
+    async def test_a_rejected_password_also_carries_them(
+        self, gated_client: httpx.AsyncClient
+    ) -> None:
+        """Otherwise "wrong password" is indistinguishable from "offline"."""
+        response = await gated_client.post(
+            "/api/unlock",
+            json={"password": "wrong"},
+            headers={"Origin": ORIGIN},
+        )
+        assert response.status_code == 401
+        assert response.headers.get("access-control-allow-origin") == ORIGIN
+
+    async def test_a_successful_unlock_carries_them(self, gated_client: httpx.AsyncClient) -> None:
+        response = await gated_client.post(
+            "/api/unlock",
+            json={"password": PASSWORD},
+            headers={"Origin": ORIGIN},
+        )
+        assert response.status_code == 200
+        assert response.headers.get("access-control-allow-origin") == ORIGIN
 
 
 class TestUngated:

@@ -159,14 +159,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             ),
         )
 
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.cors_origin_list,
-        allow_credentials=True,
-        allow_methods=["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
-        allow_headers=["*"],
-    )
-
     @app.middleware("http")
     async def correlate_requests(request: Request, call_next: Any) -> Response:
         """Attach a correlation id to every request and its log lines.
@@ -196,6 +188,32 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     # which keeps local development unprompted while making a public
     # deployment closed by default.
     install_demo_gate(app, settings)
+
+    # CORS is added **last**, which makes it the outermost middleware,
+    # and the order is load-bearing rather than stylistic.
+    #
+    # Starlette wraps middleware so that the most recently added runs
+    # first, so anything added after this one produces responses that CORS
+    # never sees. That is exactly what went wrong: the password gate was
+    # installed after CORS, so its 401 carried no
+    # Access-Control-Allow-Origin header. The preflight succeeded, the
+    # real response was then discarded by the browser, and the frontend
+    # could not read the very status code that tells it to ask for a
+    # password. A protected deployment looked like an unreachable one.
+    #
+    # Anything that can *reject* a request has to sit inside CORS, so its
+    # rejection is still legible to the browser that asked.
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origin_list,
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
+        allow_headers=["*"],
+        # Short on purpose. A browser caches a refused preflight for this
+        # long, so a generous value turns every CORS misconfiguration into
+        # a ten-minute wait before the fix appears to work.
+        max_age=60,
+    )
 
     register_exception_handlers(app)
 
