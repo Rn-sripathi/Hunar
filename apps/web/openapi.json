@@ -1011,6 +1011,132 @@
         }
       }
     },
+    "/api/v1/people/prospects": {
+      "get": {
+        "summary": "List Prospects",
+        "description": "Everyone sourced so far.\n\nThis exists because prospects were persisted and then shown only in\nthe response that created them. Reloading the search screen threw\naway people who had cost real provider credits to find, which is\nclose to the worst possible way to lose data.\n\nOrdered by fit score so the list is immediately useful, and the\nconsent decision is recomputed per row rather than stored, because it\ndepends on the environment's allowlist and on the clock.",
+        "operationId": "list_prospects_api_v1_people_prospects_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "search_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Search Id"
+            }
+          },
+          {
+            "name": "consented_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Consented Only"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProspectPage"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/people/searches": {
+      "get": {
+        "summary": "List Searches",
+        "description": "Past searches, so a result set can be found again.\n\nEach one cost credits, so being able to point at the search that\nproduced a list of people is both an audit trail and a way to avoid\npaying twice for the same question.",
+        "operationId": "list_searches_api_v1_people_searches_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SearchSummary"
+                  },
+                  "title": "Response List Searches Api V1 People Searches Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/campaigns": {
       "get": {
         "summary": "List Campaigns",
@@ -3183,6 +3309,40 @@
         ],
         "title": "ProspectOut"
       },
+      "ProspectPage": {
+        "properties": {
+          "prospects": {
+            "items": {
+              "$ref": "#/components/schemas/ProspectOut"
+            },
+            "type": "array",
+            "title": "Prospects"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "default": 0
+          },
+          "consented_count": {
+            "type": "integer",
+            "title": "Consented Count",
+            "default": 0
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit",
+            "default": 50
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "title": "ProspectPage",
+        "description": "Everyone sourced so far, so a search outlives its browser tab.\n\nProspects were being persisted and then shown only in the response\nthat created them, which meant reloading the page discarded people\nwho had cost real provider credits to find. This is the durable view\nof them."
+      },
       "QuestionInput": {
         "properties": {
           "text": {
@@ -3789,6 +3949,63 @@
         ],
         "title": "SearchResponse",
         "description": "Everything the search screen needs, including how it was derived."
+      },
+      "SearchSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "provider_degraded_to": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider Degraded To"
+          },
+          "extraction_method": {
+            "type": "string",
+            "title": "Extraction Method"
+          },
+          "result_count": {
+            "type": "integer",
+            "title": "Result Count",
+            "default": 0
+          },
+          "credits_charged": {
+            "type": "integer",
+            "title": "Credits Charged",
+            "default": 0
+          },
+          "label": {
+            "type": "string",
+            "title": "Label",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "created_at",
+          "provider",
+          "extraction_method"
+        ],
+        "title": "SearchSummary",
+        "description": "One past search, enough to identify and revisit it."
       },
       "TargetOut": {
         "properties": {

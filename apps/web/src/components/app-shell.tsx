@@ -16,6 +16,8 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { href: "/jobs", label: "Screening" },
   { href: "/sourcing", label: "Sourcing" },
+  { href: "/sourcing/prospects", label: "Prospects" },
+  { href: "/sourcing/campaigns", label: "Campaigns" },
 ];
 
 function ThemeToggle() {

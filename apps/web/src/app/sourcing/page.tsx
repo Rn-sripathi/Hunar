@@ -491,8 +491,14 @@ export default function SourcingPage() {
               {selected.size === 0
                 ? "Select the people you want to reach."
                 : `${selected.size} selected.`}{" "}
-              The consent gate runs again when you launch, so a selection made
-              now cannot bypass it later.
+              Everyone found is saved to{" "}
+              <Link
+                href="/sourcing/prospects"
+                className="underline underline-offset-2"
+              >
+                Prospects
+              </Link>
+              , so leaving this page does not lose them.
             </p>
             <Button
               disabled={selected.size === 0 || busy}

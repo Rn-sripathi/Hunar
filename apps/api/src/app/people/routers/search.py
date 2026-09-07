@@ -10,18 +10,35 @@ on the provider.
 from __future__ import annotations
 
 import uuid
+from typing import Annotated
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import desc, func, select
 
 from app.core.answers import mask_number
 from app.core.errors import NotFoundError, ValidationFailedError
 from app.deps import DbSession, SettingsDep
-from app.people.models import ContactAllowlistEntry, PhoneStatus, Prospect
+from app.people.models import (
+    ContactAllowlistEntry,
+    PeopleSearch,
+    PhoneStatus,
+    Prospect,
+    ProspectSearchHit,
+)
 from app.people.providers import build_provider
-from app.people.schemas import ProspectOut, SearchRequest, SearchResponse
-from app.people.services.consent import seed_allowlist, within_calling_hours
+from app.people.schemas import (
+    ProspectOut,
+    ProspectPage,
+    SearchRequest,
+    SearchResponse,
+    SearchSummary,
+)
+from app.people.services.consent import (
+    load_consent_context,
+    seed_allowlist,
+    within_calling_hours,
+)
 from app.people.services.extraction import ExtractionResult, extract_filters
 from app.people.services.search_service import prospect_out, run_search
 
@@ -203,3 +220,118 @@ async def seed(session: DbSession, settings: SettingsDep) -> CallingPolicyOut:
     """
     await seed_allowlist(session, settings)
     return await policy(session, settings)
+
+
+@router.get("/prospects", response_model=ProspectPage)
+async def list_prospects(
+    session: DbSession,
+    settings: SettingsDep,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    search_id: uuid.UUID | None = None,
+    consented_only: bool = False,
+) -> ProspectPage:
+    """Everyone sourced so far.
+
+    This exists because prospects were persisted and then shown only in
+    the response that created them. Reloading the search screen threw
+    away people who had cost real provider credits to find, which is
+    close to the worst possible way to lose data.
+
+    Ordered by fit score so the list is immediately useful, and the
+    consent decision is recomputed per row rather than stored, because it
+    depends on the environment's allowlist and on the clock.
+    """
+    conditions = []
+    if consented_only:
+        # Cheap pre-filter. The authoritative decision is still made by
+        # the consent gate below; this only avoids loading obvious misses.
+        conditions.append(Prospect.phone_e164.is_not(None))
+
+    query = select(Prospect)
+    count_query = select(func.count(Prospect.id))
+
+    if search_id is not None:
+        # Revisiting one search rather than the whole pool.
+        joined = ProspectSearchHit.prospect_id == Prospect.id
+        query = query.join(ProspectSearchHit, joined).where(
+            ProspectSearchHit.search_id == search_id
+        )
+        count_query = count_query.join(ProspectSearchHit, joined).where(
+            ProspectSearchHit.search_id == search_id
+        )
+
+    if conditions:
+        query = query.where(*conditions)
+        count_query = count_query.where(*conditions)
+
+    total = await session.scalar(count_query) or 0
+    rows = list(
+        (
+            await session.execute(
+                query.order_by(desc(Prospect.fit_score).nullslast(), Prospect.full_name)
+                .limit(limit)
+                .offset(offset)
+            )
+        )
+        .scalars()
+        .all()
+    )
+
+    # One context for the whole page rather than one per row.
+    consent = await load_consent_context(session, settings)
+    rendered = [await prospect_out(session, settings, row, context=consent) for row in rows]
+    if consented_only:
+        rendered = [person for person in rendered if person.consented]
+
+    return ProspectPage(
+        prospects=rendered,
+        total=total,
+        consented_count=sum(1 for person in rendered if person.consented),
+        limit=limit,
+        offset=offset,
+    )
+
+
+@router.get("/searches", response_model=list[SearchSummary])
+async def list_searches(session: DbSession, limit: int = 20) -> list[SearchSummary]:
+    """Past searches, so a result set can be found again.
+
+    Each one cost credits, so being able to point at the search that
+    produced a list of people is both an audit trail and a way to avoid
+    paying twice for the same question.
+    """
+    rows = (
+        await session.execute(
+            select(PeopleSearch).order_by(desc(PeopleSearch.created_at)).limit(limit)
+        )
+    ).scalars()
+
+    summaries: list[SearchSummary] = []
+    for search in rows:
+        first_line = next(
+            (line.strip() for line in search.jd_text.splitlines() if line.strip()), ""
+        )
+        if not first_line:
+            # A manual search has no description, so name it by what it
+            # actually asked for.
+            titles = (search.filters_resolved or {}).get("titles") or []
+            cities = (search.filters_resolved or {}).get("cities") or []
+            parts = [", ".join(titles[:3])] if titles else []
+            if cities:
+                parts.append(f"in {cities[0]}")
+            first_line = " ".join(parts) or "Untitled search"
+
+        summaries.append(
+            SearchSummary(
+                id=search.id,
+                created_at=search.created_at,
+                provider=search.provider,
+                provider_degraded_to=search.provider_degraded_to,
+                extraction_method=search.extraction_method,
+                result_count=search.result_count,
+                credits_charged=search.credits_charged,
+                label=first_line[:120],
+            )
+        )
+    return summaries

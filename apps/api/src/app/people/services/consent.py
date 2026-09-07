@@ -45,8 +45,10 @@ from app.people.models import ContactAllowlistEntry, DoNotContact, Prospect
 logger = structlog.get_logger(__name__)
 
 __all__ = [
+    "ConsentContext",
     "ConsentDecision",
     "allowlist_for",
+    "load_consent_context",
     "record_do_not_contact",
     "seed_allowlist",
     "within_calling_hours",
@@ -61,6 +63,73 @@ def hash_number(e164: str) -> str:
     the thing being suppressed.
     """
     return hashlib.sha256(e164.strip().encode()).hexdigest()
+
+
+@dataclass(frozen=True, slots=True)
+class ConsentContext:
+    """Everything the gate needs, loaded once instead of per person.
+
+    The decision itself is pure bookkeeping: is this number permitted, is
+    it suppressed, is the clock inside the window. Only the inputs need a
+    database, and they are identical for every prospect being judged in
+    the same breath.
+
+    Reading them per row cost 18 seconds to render 25 people against a
+    database in another continent, because each row re-read the whole
+    allowlist and the suppression list. Two queries now serve a page of
+    any size.
+    """
+
+    entries: dict[str, ContactAllowlistEntry]
+    permitted: frozenset[str]
+    suppressed: frozenset[str]
+    within_hours: bool
+    window: str
+
+    def decide(self, prospect: Prospect) -> ConsentDecision:
+        """Judge one prospect against the loaded state.
+
+        Every refusal carries a reason written for a person, because the
+        UI shows blocked prospects rather than hiding them. Demonstrating
+        the gate firing is the point of having it: a list that silently
+        omits the people it will not call teaches the operator nothing.
+        """
+        if prospect.do_not_contact:
+            return ConsentDecision(
+                allowed=False,
+                reason="This person asked not to be contacted again.",
+            )
+
+        # A broker-sourced number is never dialable, whether or not we
+        # hold it. Only a number someone put on the allowlist is.
+        candidate = (prospect.phone_e164 or "").strip()
+        match = self.entries.get(candidate) if candidate else None
+        if match is None or match.e164 not in self.permitted:
+            return ConsentDecision(
+                allowed=False,
+                reason=(
+                    "Not on the consent allowlist. This deployment only calls numbers "
+                    "its operator has explicitly consented to, so sourced numbers are "
+                    "never dialled."
+                ),
+            )
+
+        if hash_number(match.e164) in self.suppressed:
+            return ConsentDecision(
+                allowed=False,
+                reason="This number is on the do-not-contact list.",
+            )
+
+        if not self.within_hours:
+            return ConsentDecision(
+                allowed=False,
+                allowlist_id=match.id,
+                allowlist_label=match.label,
+                reason=(f"Outside calling hours ({self.window}). Queued for the next window."),
+                deferrable=True,
+            )
+
+        return ConsentDecision(allowed=True, allowlist_id=match.id, allowlist_label=match.label)
 
 
 @dataclass(frozen=True, slots=True)
@@ -124,6 +193,34 @@ def within_calling_hours(settings: Settings, now: datetime | None = None) -> boo
     return settings.calling_window_start <= local.time() <= settings.calling_window_end
 
 
+async def load_consent_context(
+    session: AsyncSession, settings: Settings, *, now: datetime | None = None
+) -> ConsentContext:
+    """Read the gate's inputs, once, for judging any number of people.
+
+    Two queries regardless of how many prospects follow. The suppression
+    list is loaded whole rather than probed per number: it is small, it is
+    only hashes, and one round trip beats twenty-five.
+    """
+    entries = {
+        entry.e164: entry
+        for entry in (await session.execute(select(ContactAllowlistEntry))).scalars()
+    }
+    suppressed = frozenset(
+        (await session.execute(select(DoNotContact.e164_sha256))).scalars().all()
+    )
+    return ConsentContext(
+        entries=entries,
+        permitted=settings.allowlisted_numbers,
+        suppressed=suppressed,
+        within_hours=within_calling_hours(settings, now),
+        window=(
+            f"{settings.calling_hours_start} to {settings.calling_hours_end} "
+            f"{settings.calling_timezone}"
+        ),
+    )
+
+
 async def allowlist_for(
     session: AsyncSession,
     settings: Settings,
@@ -131,62 +228,15 @@ async def allowlist_for(
     *,
     now: datetime | None = None,
 ) -> ConsentDecision:
-    """Decide whether this prospect may be called, and on what number.
+    """Decide whether one prospect may be called, and on what number.
 
-    Every refusal carries a reason written for a person, because the UI
-    shows blocked prospects rather than hiding them. Demonstrating the
-    gate firing is the point of having it: a list that silently omits the
-    people it will not call teaches the operator nothing.
+    Loads the gate's inputs itself, so it stays correct and convenient
+    for a single decision. Judging a whole page this way is what caused
+    the N+1: use :func:`load_consent_context` once and
+    :meth:`ConsentContext.decide` per row instead.
     """
-    if prospect.do_not_contact:
-        return ConsentDecision(
-            allowed=False,
-            reason="This person asked not to be contacted again.",
-        )
-
-    # A broker-sourced number is never dialable, whether or not we hold
-    # it. Only a number someone put on the allowlist is.
-    candidate = (prospect.phone_e164 or "").strip()
-    entries = {
-        entry.e164: entry
-        for entry in (await session.execute(select(ContactAllowlistEntry))).scalars()
-    }
-    permitted = settings.allowlisted_numbers
-
-    match = entries.get(candidate) if candidate else None
-    if match is None or match.e164 not in permitted:
-        return ConsentDecision(
-            allowed=False,
-            reason=(
-                "Not on the consent allowlist. This deployment only calls numbers "
-                "its operator has explicitly consented to, so sourced numbers are "
-                "never dialled."
-            ),
-        )
-
-    suppressed = await session.scalar(
-        select(DoNotContact.e164_sha256).where(DoNotContact.e164_sha256 == hash_number(match.e164))
-    )
-    if suppressed is not None:
-        return ConsentDecision(
-            allowed=False,
-            reason="This number is on the do-not-contact list.",
-        )
-
-    if not within_calling_hours(settings, now):
-        return ConsentDecision(
-            allowed=False,
-            allowlist_id=match.id,
-            allowlist_label=match.label,
-            reason=(
-                f"Outside calling hours ({settings.calling_hours_start} to "
-                f"{settings.calling_hours_end} {settings.calling_timezone}). "
-                "Queued for the next window."
-            ),
-            deferrable=True,
-        )
-
-    return ConsentDecision(allowed=True, allowlist_id=match.id, allowlist_label=match.label)
+    context = await load_consent_context(session, settings, now=now)
+    return context.decide(prospect)
 
 
 async def record_do_not_contact(

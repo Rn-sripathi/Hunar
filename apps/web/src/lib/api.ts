@@ -31,9 +31,11 @@ import type {
   LaunchRequest,
   MetaResponse,
   ProspectOut,
+  ProspectPage,
   ResultsResponse,
   SearchFilters,
   SearchResponse,
+  SearchSummary,
 } from "@/lib/types";
 
 const BASE_URL = (
@@ -296,6 +298,36 @@ export const api = {
       }),
 
     /**
+     * Everyone sourced so far.
+     *
+     * The search response is not the only place prospects live. They are
+     * persisted, and this is the durable view: reloading a page should
+     * not discard people who cost provider credits to find.
+     */
+    prospects: (
+      params: {
+        limit?: number;
+        offset?: number;
+        consented_only?: boolean;
+        search_id?: string | null;
+      } = {},
+    ) => {
+      const query = new URLSearchParams();
+      if (params.limit != null) query.set("limit", String(params.limit));
+      if (params.offset != null) query.set("offset", String(params.offset));
+      if (params.consented_only) query.set("consented_only", "true");
+      if (params.search_id) query.set("search_id", params.search_id);
+      const suffix = query.toString();
+      return request<ProspectPage>(
+        `/people/prospects${suffix ? `?${suffix}` : ""}`,
+      );
+    },
+
+    /** Past searches, so a result set that cost credits can be found again. */
+    searches: (limit = 20) =>
+      request<SearchSummary[]>(`/people/searches?limit=${limit}`),
+
+    /**
      * Record that a sourced person is reachable on a consented number.
      *
      * This does not grant permission. The set of dialable numbers comes
@@ -363,6 +395,12 @@ export const queryKeys = {
   results: (jobId: string) => ["jobs", jobId, "results"] as const,
 
   policy: ["people", "policy"] as const,
+  searches: ["people", "searches"] as const,
+  prospects: (params: {
+    offset: number;
+    consentedOnly: boolean;
+    searchId: string | null;
+  }) => ["people", "prospects", params] as const,
   campaigns: ["campaigns"] as const,
   campaign: (campaignId: string) => ["campaigns", campaignId] as const,
 };

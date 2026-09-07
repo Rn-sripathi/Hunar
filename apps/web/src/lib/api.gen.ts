@@ -452,6 +452,59 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/people/prospects": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List Prospects
+     * @description Everyone sourced so far.
+     *
+     *     This exists because prospects were persisted and then shown only in
+     *     the response that created them. Reloading the search screen threw
+     *     away people who had cost real provider credits to find, which is
+     *     close to the worst possible way to lose data.
+     *
+     *     Ordered by fit score so the list is immediately useful, and the
+     *     consent decision is recomputed per row rather than stored, because it
+     *     depends on the environment's allowlist and on the clock.
+     */
+    get: operations["list_prospects_api_v1_people_prospects_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/people/searches": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List Searches
+     * @description Past searches, so a result set can be found again.
+     *
+     *     Each one cost credits, so being able to point at the search that
+     *     produced a list of people is both an audit trail and a way to avoid
+     *     paying twice for the same question.
+     */
+    get: operations["list_searches_api_v1_people_searches_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/campaigns": {
     parameters: {
       query?: never;
@@ -1401,6 +1454,39 @@ export interface components {
       }[];
     };
     /**
+     * ProspectPage
+     * @description Everyone sourced so far, so a search outlives its browser tab.
+     *
+     *     Prospects were being persisted and then shown only in the response
+     *     that created them, which meant reloading the page discarded people
+     *     who had cost real provider credits to find. This is the durable view
+     *     of them.
+     */
+    ProspectPage: {
+      /** Prospects */
+      prospects?: components["schemas"]["ProspectOut"][];
+      /**
+       * Total
+       * @default 0
+       */
+      total: number;
+      /**
+       * Consented Count
+       * @default 0
+       */
+      consented_count: number;
+      /**
+       * Limit
+       * @default 50
+       */
+      limit: number;
+      /**
+       * Offset
+       * @default 0
+       */
+      offset: number;
+    };
+    /**
      * QuestionInput
      * @description One question as the recruiter defines it.
      */
@@ -1670,6 +1756,43 @@ export interface components {
       callable_count: number;
       /** Note */
       note?: string | null;
+    };
+    /**
+     * SearchSummary
+     * @description One past search, enough to identify and revisit it.
+     */
+    SearchSummary: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Provider */
+      provider: string;
+      /** Provider Degraded To */
+      provider_degraded_to?: string | null;
+      /** Extraction Method */
+      extraction_method: string;
+      /**
+       * Result Count
+       * @default 0
+       */
+      result_count: number;
+      /**
+       * Credits Charged
+       * @default 0
+       */
+      credits_charged: number;
+      /**
+       * Label
+       * @default
+       */
+      label: string;
     };
     /** TargetOut */
     TargetOut: {
@@ -2503,6 +2626,71 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["CallingPolicyOut"];
+        };
+      };
+    };
+  };
+  list_prospects_api_v1_people_prospects_get: {
+    parameters: {
+      query?: {
+        limit?: number;
+        offset?: number;
+        search_id?: string | null;
+        consented_only?: boolean;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ProspectPage"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  list_searches_api_v1_people_searches_get: {
+    parameters: {
+      query?: {
+        limit?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["SearchSummary"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
         };
       };
     };

@@ -23,9 +23,11 @@ __all__ = [
     "CampaignSummary",
     "LaunchOutreachReport",
     "ProspectOut",
+    "ProspectPage",
     "SearchFilters",
     "SearchRequest",
     "SearchResponse",
+    "SearchSummary",
     "TargetOut",
 ]
 
@@ -177,6 +179,37 @@ class ProspectOut(_Out):
     do_not_contact: bool = False
     fit_score: int | None = None
     fit_reasons: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class ProspectPage(BaseModel):
+    """Everyone sourced so far, so a search outlives its browser tab.
+
+    Prospects were being persisted and then shown only in the response
+    that created them, which meant reloading the page discarded people
+    who had cost real provider credits to find. This is the durable view
+    of them.
+    """
+
+    prospects: list[ProspectOut] = Field(default_factory=list)
+    total: int = 0
+    consented_count: int = 0
+    limit: int = 50
+    offset: int = 0
+
+
+class SearchSummary(_Out):
+    """One past search, enough to identify and revisit it."""
+
+    id: uuid.UUID
+    created_at: datetime
+    provider: str
+    provider_degraded_to: str | None = None
+    extraction_method: str
+    result_count: int = 0
+    credits_charged: int = 0
+    #: The first line of the description, or the titles searched for when
+    #: there was no description. Something a person can recognise.
+    label: str = ""
 
 
 class SearchResponse(BaseModel):

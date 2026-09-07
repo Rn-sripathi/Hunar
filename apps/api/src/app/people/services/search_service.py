@@ -44,7 +44,11 @@ from app.people.providers.pdl import (
     PdlUnavailableError,
 )
 from app.people.schemas import ProspectOut, SearchFilters, SearchRequest, SearchResponse
-from app.people.services.consent import allowlist_for
+from app.people.services.consent import (
+    ConsentContext,
+    allowlist_for,
+    load_consent_context,
+)
 from app.people.services.extraction import extract_filters
 
 logger = structlog.get_logger(__name__)
@@ -203,7 +207,13 @@ def score_prospect(
 # ── persistence ──────────────────────────────────────────────
 
 
-async def prospect_out(session: AsyncSession, settings: Settings, row: Prospect) -> ProspectOut:
+async def prospect_out(
+    session: AsyncSession,
+    settings: Settings,
+    row: Prospect,
+    *,
+    context: ConsentContext | None = None,
+) -> ProspectOut:
     """Render one prospect for the API, consent decision included.
 
     The callable flag is computed here rather than stored, because it
@@ -211,8 +221,14 @@ async def prospect_out(session: AsyncSession, settings: Settings, row: Prospect)
     change without the prospect changing. A stored flag would go stale
     silently, which for this particular flag means calling someone the
     deployment is no longer permitted to call.
+
+    Pass ``context`` whenever rendering more than one person. Without it
+    each row re-reads the allowlist and the suppression list, which took
+    18 seconds for a page of 25 against a database in another region.
     """
-    decision = await allowlist_for(session, settings, row)
+    decision = (
+        context.decide(row) if context is not None else await allowlist_for(session, settings, row)
+    )
     # An allowlist id means the gate found a consented number for this
     # person, whatever it then decided about the clock. That is the fact
     # the campaign builder needs; whether the phone may ring right now is
@@ -353,12 +369,13 @@ async def run_search(
 
     out: list[ProspectOut] = []
     callable_count = 0
+    consent = await load_consent_context(session, settings)
 
     for rank, (incoming, score, reasons) in enumerate(scored):
         row = await _upsert_prospect(session, incoming, score, reasons)
         session.add(ProspectSearchHit(search_id=search.id, prospect_id=row.id, rank=rank))
 
-        rendered = await prospect_out(session, settings, row)
+        rendered = await prospect_out(session, settings, row, context=consent)
         if rendered.consented:
             callable_count += 1
         out.append(rendered)

@@ -347,10 +347,12 @@ export function ProspectTable({
             <TableHead>Person</TableHead>
             <TableHead>Now</TableHead>
             <TableHead>Location</TableHead>
-            <TableHead className="w-40">Skills</TableHead>
+            <TableHead className="w-40 min-w-36">Skills</TableHead>
             <TableHead className="w-32">Phone</TableHead>
             <TableHead className="w-36">Reachable</TableHead>
-            <TableHead className="w-36 text-right">Fit</TableHead>
+            <TableHead className="bg-background sticky right-0 w-36 text-right shadow-[-8px_0_8px_-8px_rgba(0,0,0,0.12)]">
+              Fit
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -449,7 +451,10 @@ export function ProspectTable({
                 />
               </TableCell>
 
-              <TableCell className="text-right">
+              {/* Pinned: a wide skills column otherwise pushes the score,
+                  which is the thing people actually scan, past the right
+                  edge of the viewport. */}
+              <TableCell className="bg-background sticky right-0 text-right shadow-[-8px_0_8px_-8px_rgba(0,0,0,0.12)]">
                 <FitCell prospect={prospect} />
               </TableCell>
             </TableRow>
