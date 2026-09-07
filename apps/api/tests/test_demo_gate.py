@@ -22,6 +22,7 @@ from fastapi import FastAPI
 from app.core.config import HunarMode, PeopleProvider, Settings
 from app.core.gate import (
     COOKIE_NAME,
+    HEADER_NAME,
     MAX_AGE_SECONDS,
     issue_token,
     token_is_valid,
@@ -254,6 +255,52 @@ class TestRejectionsStayLegibleToBrowsers:
         )
         assert response.status_code == 200
         assert response.headers.get("access-control-allow-origin") == ORIGIN
+
+
+class TestWorksWithoutCookies:
+    """A phone never stored the cookie, so the password did nothing.
+
+    The frontend and the API are on different registrable domains, which
+    makes the gate's cookie a third-party cookie. Mobile Safari discards
+    those outright. The unlock returned 200, the cookie vanished, every
+    later request was still unauthenticated, and the only symptom was a
+    password that appeared to be ignored.
+
+    So the token is also returned in the body and accepted as a header,
+    which no cookie policy can interfere with.
+    """
+
+    async def test_unlock_returns_the_token(self, gated_client: httpx.AsyncClient) -> None:
+        response = await gated_client.post("/api/unlock", json={"password": PASSWORD})
+        assert response.status_code == 200
+        token = response.json().get("token")
+        assert token, "without this a cookie-less browser has no way through"
+        assert token_is_valid(token, SECRET)
+
+    async def test_the_header_alone_opens_the_gate(self, gated_client: httpx.AsyncClient) -> None:
+        """No cookie jar at all: exactly what an iPhone presents."""
+        token = issue_token(SECRET)
+        response = await gated_client.get("/api/v1/people/policy", headers={HEADER_NAME: token})
+        assert response.status_code != 401
+
+    async def test_a_forged_header_does_not(self, gated_client: httpx.AsyncClient) -> None:
+        response = await gated_client.get(
+            "/api/v1/people/policy",
+            headers={HEADER_NAME: issue_token("some-other-secret")},
+        )
+        assert response.status_code == 401
+
+    async def test_an_expired_header_does_not(self, gated_client: httpx.AsyncClient) -> None:
+        stale = issue_token(SECRET, now=0)
+        response = await gated_client.get("/api/v1/people/policy", headers={HEADER_NAME: stale})
+        assert response.status_code == 401
+
+    async def test_the_cookie_matches_the_returned_token(
+        self, gated_client: httpx.AsyncClient
+    ) -> None:
+        """Both routes must carry the same token, not two separate ones."""
+        response = await gated_client.post("/api/unlock", json={"password": PASSWORD})
+        assert response.cookies[COOKIE_NAME] == response.json()["token"]
 
 
 class TestUngated:

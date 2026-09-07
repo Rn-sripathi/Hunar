@@ -39,9 +39,29 @@ from app.core.config import Settings
 
 logger = structlog.get_logger(__name__)
 
-__all__ = ["COOKIE_NAME", "install_demo_gate", "issue_token", "token_is_valid"]
+__all__ = [
+    "COOKIE_NAME",
+    "HEADER_NAME",
+    "install_demo_gate",
+    "issue_token",
+    "token_is_valid",
+]
 
 COOKIE_NAME = "hunar_demo"
+
+#: The same token, presented as a header instead.
+#:
+#: The frontend and the API are on different registrable domains, which
+#: makes the cookie a third-party cookie. Mobile Safari blocks those
+#: outright and Chrome is phasing them out, so on a phone the unlock
+#: succeeded, the cookie was silently discarded, and every request after
+#: it was still unauthenticated. The password appeared not to work.
+#:
+#: A header is not subject to any of that. The cookie is still set and
+#: still accepted, because it survives a reload without JavaScript
+#: having to remember anything, but the header is what makes this work
+#: on a phone.
+HEADER_NAME = "X-Demo-Token"
 
 #: A week. Long enough that a reviewer is not asked twice, short enough
 #: that a leaked cookie stops working on its own.
@@ -127,10 +147,16 @@ def install_demo_gate(app: FastAPI, settings: Settings) -> None:
                 status_code=401,
             )
 
-        response = JSONResponse({"status": "unlocked"})
+        # The token is returned in the body as well as set as a cookie.
+        # That is deliberate: this is a shared password, not a session
+        # identity, so there is nothing here that JavaScript holding it
+        # makes worse — and it is the only way through on a browser that
+        # refuses third-party cookies.
+        token = issue_token(secret)
+        response = JSONResponse({"status": "unlocked", "token": token})
         response.set_cookie(
             COOKIE_NAME,
-            issue_token(secret),
+            token,
             max_age=MAX_AGE_SECONDS,
             httponly=True,
             secure=True,
@@ -157,8 +183,8 @@ def install_demo_gate(app: FastAPI, settings: Settings) -> None:
         if request.method == "OPTIONS":
             return await call_next(request)
 
-        token = request.cookies.get(COOKIE_NAME, "")
-        if token and token_is_valid(token, secret):
+        presented = request.headers.get(HEADER_NAME) or request.cookies.get(COOKIE_NAME, "")
+        if presented and token_is_valid(presented, secret):
             return await call_next(request)
 
         return JSONResponse(

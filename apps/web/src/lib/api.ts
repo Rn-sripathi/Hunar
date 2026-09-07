@@ -38,6 +38,34 @@ import type {
   SearchSummary,
 } from "@/lib/types";
 
+/**
+ * Where the demo token is kept between page loads.
+ *
+ * The API is on a different site from this one, so its cookie is a
+ * third-party cookie: mobile Safari discards it and Chrome is phasing
+ * them out. Keeping the token here and sending it as a header works
+ * regardless of cookie policy, which is the difference between the
+ * password working on a phone and appearing to do nothing.
+ */
+const TOKEN_KEY = "hunar_demo_token";
+
+function readToken(): string | null {
+  try {
+    return localStorage.getItem(TOKEN_KEY);
+  } catch {
+    // Private browsing can throw rather than return null.
+    return null;
+  }
+}
+
+function storeToken(token: string): void {
+  try {
+    localStorage.setItem(TOKEN_KEY, token);
+  } catch {
+    // Without storage the cookie is the only route; nothing else to do.
+  }
+}
+
 const BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api/v1"
 ).replace(/\/$/, "");
@@ -140,6 +168,7 @@ async function request<T>(
         ...(init.body instanceof FormData
           ? {}
           : { "Content-Type": "application/json" }),
+        ...(readToken() ? { "X-Demo-Token": readToken() as string } : {}),
         ...init.headers,
       },
     });
@@ -171,12 +200,18 @@ export const api = {
    * password, not authentication: there are no accounts and no record of
    * who did what.
    */
-  unlock: (password: string) =>
-    request<{ status: string }>(
+  unlock: async (password: string) => {
+    const result = await request<{ status: string; token?: string }>(
       "/api/unlock",
       { method: "POST", ...json({ password }) },
       true,
-    ),
+    );
+    // Kept so later requests carry it as a header. Relying on the cookie
+    // alone left the password doing nothing on any browser that refuses
+    // third-party cookies, which includes every iPhone.
+    if (result.token) storeToken(result.token);
+    return result;
+  },
 
   /** Runtime facts, including whether the data shown is simulated. */
   meta: () => request<MetaResponse>("/meta", { method: "GET" }, true),
