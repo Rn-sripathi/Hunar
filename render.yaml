@@ -71,10 +71,11 @@ services:
       - key: HUNAR_MODE
         value: auto
 
-      # Must match this service's own public URL: it is the root of every
-      # webhook callback URL, and Hunar rejects non-HTTPS callbacks.
-      - key: PUBLIC_API_BASE_URL
-        sync: false
+      # Deliberately absent. The root of every webhook callback URL is
+      # this service's own address, which is not knowable until the
+      # service exists, so the app reads Render's own RENDER_EXTERNAL_URL
+      # instead. Set PUBLIC_API_BASE_URL explicitly only to override it,
+      # such as behind a custom domain.
 
       # The Vercel domain. A browser treats localhost and 127.0.0.1 as
       # different origins, so production lists only the real one.

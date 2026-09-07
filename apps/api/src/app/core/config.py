@@ -22,6 +22,7 @@ rather than mere values:
 
 from __future__ import annotations
 
+import os
 import re
 from datetime import time
 from enum import StrEnum
@@ -39,6 +40,11 @@ __all__ = [
     "Settings",
     "get_settings",
 ]
+
+#: Distinguishes "nobody said" from "somebody chose localhost", which is
+#: what lets the platform's own URL be adopted without overriding a
+#: deliberate local choice.
+_UNSET_PUBLIC_URL = "https://localhost"
 
 _E164 = re.compile(r"^\+[1-9]\d{7,14}$")
 
@@ -130,7 +136,11 @@ class Settings(BaseSettings):
     webhook_max_skew_seconds: int = Field(default=300, ge=60, le=3600)
 
     #: Root of every webhook callback URL. Must be public and HTTPS.
-    public_api_base_url: str = "https://localhost"
+    #:
+    #: Left at the sentinel, it is filled in from the platform's own
+    #: announcement of where it is hosted, so a first deploy does not have
+    #: to know its URL before it exists.
+    public_api_base_url: str = _UNSET_PUBLIC_URL
 
     #: Speed multiplier for the demo client's simulated call lifecycle.
     #: Left at 1.0 for the deployed demo so the monitoring screen animates
@@ -193,6 +203,29 @@ class Settings(BaseSettings):
         return value.strip()
 
     @model_validator(mode="after")
+    def _adopt_host_provided_url(self) -> Settings:
+        """Take the public URL from the platform when it offers one.
+
+        Every webhook callback is rooted at this value, and Hunar rejects
+        anything that is not HTTPS, so production refuses to boot without
+        it. That created a chicken and egg: the correct value is the
+        service's own URL, which does not exist until the service has been
+        created, so a first deploy could only ever fail.
+
+        Render publishes ``RENDER_EXTERNAL_URL``, so the common case needs
+        no human in the loop. An explicit ``PUBLIC_API_BASE_URL`` still
+        wins, which matters for a tunnel during local development against
+        the live API.
+        """
+        if self.public_api_base_url in ("", _UNSET_PUBLIC_URL):
+            for variable in ("PUBLIC_API_BASE_URL", "RENDER_EXTERNAL_URL"):
+                provided = os.environ.get(variable, "").strip().rstrip("/")
+                if provided:
+                    self.public_api_base_url = provided
+                    break
+        return self
+
+    @model_validator(mode="after")
     def _validate_consistency(self) -> Settings:
         if self.calling_window_start >= self.calling_window_end:
             raise ValueError("calling_hours_start must be earlier than calling_hours_end")
@@ -206,10 +239,23 @@ class Settings(BaseSettings):
         if self.is_production:
             # These are the three ways a deploy can be quietly unsafe, so
             # they are refused outright rather than warned about.
-            if not self.public_api_base_url.startswith("https://"):
+            # The sentinel is checked as well as the scheme. It is
+            # "https://localhost", which satisfies an HTTPS test while
+            # being unreachable from the internet, so testing the scheme
+            # alone let a production deploy boot with callbacks that could
+            # never be delivered — and the only symptom would be results
+            # arriving late, via polling, for a reason nobody could see.
+            if (
+                self.public_api_base_url == _UNSET_PUBLIC_URL
+                or not self.public_api_base_url.startswith("https://")
+                or not self.webhooks_deliverable
+            ):
                 raise ValueError(
-                    "PUBLIC_API_BASE_URL must be HTTPS in production; Hunar "
-                    "rejects non-HTTPS callback URLs"
+                    "PUBLIC_API_BASE_URL must be a public HTTPS URL in "
+                    "production, because Hunar rejects non-HTTPS callbacks and "
+                    "cannot reach a private address. On Render it is taken from "
+                    "RENDER_EXTERNAL_URL automatically; set it explicitly on any "
+                    f"other host. Got: {self.public_api_base_url!r}"
                 )
             if not self.demo_password:
                 raise ValueError("DEMO_PASSWORD is required in production")
