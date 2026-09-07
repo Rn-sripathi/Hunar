@@ -1,13 +1,24 @@
-# Screening Console
+# Hunar Recruiting
 
-Screen job candidates by AI voice call, and review what they said in one place.
+Two recruiting applications that share one voice pipeline.
 
-A recruiter defines a role and the questions they want asked, loads candidates,
-and launches calls. Hunar's voice agents conduct the interviews in Hindi, Tamil
-or English, and the extracted answers land in a dashboard with transparent
-scoring and a ranked shortlist.
+**Screening** — a recruiter defines a role and the questions they want asked,
+loads applicants, and launches calls. Hunar's voice agents conduct the
+interviews in Hindi, Tamil or English, and the extracted answers land in a
+dashboard with transparent scoring and a ranked shortlist.
 
-Built for the Hunar.ai assignment.
+**Sourcing** — paste a job description, find people who never applied, and
+reach the ones you are permitted to call. Same voice agents, same results
+table, a very different conversation.
+
+They are one deployment because roughly seventy percent of the work is
+identical: the voice client, the webhook receiver, correlation tokens, answer
+coercion, the shared call table and the polling hook are reused whole. What
+differs is who is on the other end of the phone, and that difference is where
+all the interesting design lives.
+
+Built for the Hunar.ai assignment. The written answer to the third question is
+in [docs/attendance-without-apps.md](docs/attendance-without-apps.md).
 
 | | |
 |---|---|
@@ -20,6 +31,8 @@ Built for the Hunar.ai assignment.
 ---
 
 ## What works today
+
+### Screening applicants
 
 - **Paste a job description and the whole form fills itself in**, including
   the screening questions. Falls back to keyword extraction when no model key
@@ -35,6 +48,73 @@ Built for the Hunar.ai assignment.
 - Review answers in a table whose columns are built from that role's questions,
   with the coerced value and the candidate's literal words side by side.
 - Transparent scoring, ranked shortlist, CSV export.
+
+### Sourcing and outreach
+
+- **Paste a job description and get editable search filters.** Extraction is
+  free and reversible; the search costs a provider credit. Keeping them apart
+  is what lets a wrong interpretation be corrected before it is paid for.
+- Search real people, ranked for outreach priority, with **the exact provider
+  query one click away** so a surprising result set can be explained rather
+  than argued about.
+- **Every fit score explains itself**, component by component, with a standing
+  note that it ranks who to approach first and must never gate a hiring
+  decision.
+- **People the app will not call are shown, with the reason**, never hidden.
+  Demonstrating the gate firing is the point of having one.
+- Bind a sourced person to a consented number, assemble a campaign, and read
+  **the exact opening sentence a stranger will hear** before pressing call.
+- Cold-call answers land in the same results table as screening answers,
+  because the table builds itself from whatever the agent was asked to extract.
+
+## Sourcing is broad. Calling is narrow.
+
+This is the central design decision of the second app, and it came from
+research that overturned the obvious approach.
+
+**No provider named in the brief will return a mobile number on a free tier.**
+
+| Provider | Person search | Phone number | Status |
+|---|---|---|---|
+| People Data Labs | Yes, ~100 credits/month | **No** — contact fields return `true`/`false` since v29.0 | Implemented |
+| Apollo.io | — | — | Free plan excludes API access entirely |
+| Proxycurl | — | — | **Shut down July 2025** after the LinkedIn suit |
+| Coresignal | Yes, 7-day trial | **No** — holds no personal phones by design | Not pursued |
+
+So the chain the brief describes — search, then phone, then call — cannot be
+closed on free credits by anyone. Rather than fake it, the product splits the
+two permissions: **sourcing is real and unrestricted, calling is gated.**
+
+That is also the right answer independent of the tier. Cold-calling someone
+whose number came from a broker engages India's TCCCPR rules, which require
+DLT sender registration this demo does not have; People Data Labs' own
+acceptable-use policy forbids using their data for employment decisions; and
+PDL settled a $6.36M class action in 2025 over exactly this kind of phone
+data. The constraint and the ethics point the same way, which is usually a
+sign the design is right.
+
+**How the gate works.** Outbound calls go only to numbers on an allowlist
+supplied through the environment, which the running app cannot extend. A
+sourced person becomes callable only when an operator binds them to one of
+those already-permitted numbers — which is how consent genuinely arrives, via
+a reply or a referral, and never from the fact that someone was findable.
+
+It is enforced at three depths:
+
+1. The service refuses, with a reason written for a person.
+2. The UI shows the refusal next to the person it refers to.
+3. `outreach_target.allowlist_id` is `NOT NULL`, so a bug that skips the
+   service layer fails at insert rather than placing a call.
+
+The check runs **twice** — once when a campaign is assembled, once immediately
+before each call — because a campaign built at 18:55 can still be draining at
+19:05, and calling hours are not advisory. Suppression stores only a SHA-256
+hash: honouring "never call me again" should not require retaining the number
+of the person who asked.
+
+**With no credentials at all**, a fixture provider serves the search screen
+with real filtering, ranking and pagination over a built-in set, so the whole
+flow is demonstrable without signing up for anything.
 
 ## Five things the API taught us
 
@@ -122,8 +202,14 @@ uv run uvicorn app.main:app --reload --port 8000
 cd apps/web && npm install && npm run dev
 ```
 
-Open <http://localhost:3000>. With `HUNAR_MODE=mock` it runs end to end with no
-credentials at all.
+Open <http://localhost:3000>. With `HUNAR_MODE=mock` and the default
+`PEOPLE_PROVIDER=fixture`, both applications run end to end with no credentials
+at all. The two switches are deliberately independent, so an expired voice key
+does not force fake people data or the reverse.
+
+To source live people, set `PEOPLE_PROVIDER=pdl` and `PDL_API_KEY`. To call
+anyone, put a number you control in `DEMO_ALLOWLIST` — nothing is dialable
+until you do, and that is the point.
 
 **To use the real voice API**, put the key in `HUNAR_API_KEY`, set
 `HUNAR_MODE=auto`, and expose the backend over HTTPS so webhooks can reach it:
@@ -140,7 +226,7 @@ them, and saves every response as a fixture.
 ## Tests
 
 ```bash
-uv run pytest                # 314 tests
+uv run pytest                # 411 tests
 uv run ruff check . && uv run mypy packages/hunar-sdk/src apps/api/src scripts
 cd apps/web && npm run typecheck && npm run lint && npm run build
 ```
@@ -195,20 +281,31 @@ optimistic updates, but hiding latency is not the same as not having it.
 - **Reconciliation is in-process**, so the API is pinned to one instance. Real
   scale needs a separate worker holding a lock. The seam is there; the worker is
   not.
-- **The voice agent has not been heard.** The prompts are written carefully but
-  prompt quality is only knowable from real calls, and the assignment key was
-  not exercised against a live number.
+- **The screening agent has been heard; the outreach agent has not.** One real
+  screening call was placed end to end — 67 seconds, answers extracted, score
+  and recording returned. The cold-outreach script has been read aloud only in
+  preview. Prompt quality is genuinely knowable only from real calls, and that
+  one is still owed.
 - **No authentication.** A shared demo password gates the deployment. Real use
   needs per-recruiter accounts and an audit trail of who rejected whom.
 - **Recordings are proxied, not stored.** Provider URLs are likely to expire
   with the key.
 - Retry policy, calling-hours guardrails and per-candidate language are
   supported by the API client but not yet exposed in the UI.
+- **Deferred targets are not dialled automatically.** A campaign assembled
+  outside calling hours marks its targets deferred and waits for someone to
+  press launch again. Draining them when the window opens needs the same
+  background worker the reconciler wants, and for the same reason it is not
+  there yet.
+- **The people-search provider returns no phone numbers**, by design of its
+  free tier. See the sourcing section above; this shapes the product rather
+  than limiting it.
 
 ## Repository
 
 ```
-docs/build-plan.md      the plan this was built against
-scripts/spike.py        day-zero API probe, run before writing product code
-scripts/dump_openapi.py regenerates the frontend's types from the backend
+docs/build-plan.md               the plan this was built against
+docs/attendance-without-apps.md  the third question, answered
+scripts/spike.py                 day-zero API probe, run before product code
+scripts/dump_openapi.py          regenerates the frontend types from the backend
 ```
