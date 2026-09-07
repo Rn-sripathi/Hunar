@@ -328,139 +328,234 @@ export function ProspectTable({
   };
 
   return (
-    <div className="overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-10">
+    <>
+      {/* Phones get cards, not a table.
+          A seven-column table on a 390px screen shows a name and a score
+          and hides everything else behind a horizontal scroll inside a
+          nested container — including the consent state and the only
+          control that makes somebody callable. Most people never find
+          it. Cards put the same facts in reading order and cost nothing
+          on a wide screen, where the table is still better. */}
+      <div className="space-y-2 sm:hidden">
+        {prospects.map((prospect) => (
+          <div
+            key={prospect.id}
+            className={cn(
+              "rounded-lg border p-3",
+              selected.has(prospect.id) && "border-primary/40 bg-muted/40",
+              !prospect.consented && "opacity-80",
+            )}
+          >
+            <div className="flex items-start gap-3">
               <Checkbox
-                checked={allSelected}
-                disabled={selectable.length === 0}
-                aria-label="Select everyone who can be called"
-                onCheckedChange={(checked) =>
-                  onSelectedChange(
-                    checked ? new Set(selectable.map((p) => p.id)) : new Set(),
-                  )
-                }
+                checked={selected.has(prospect.id)}
+                disabled={!prospect.consented}
+                aria-label={`Select ${prospect.full_name}`}
+                onCheckedChange={() => toggle(prospect.id)}
+                className="mt-0.5"
               />
-            </TableHead>
-            <TableHead>Person</TableHead>
-            <TableHead>Now</TableHead>
-            <TableHead>Location</TableHead>
-            <TableHead className="w-40 min-w-36">Skills</TableHead>
-            <TableHead className="w-32">Phone</TableHead>
-            <TableHead className="w-36">Reachable</TableHead>
-            <TableHead className="bg-background sticky right-0 w-36 text-right shadow-[-8px_0_8px_-8px_rgba(0,0,0,0.12)]">
-              Fit
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {prospects.map((prospect) => (
-            <TableRow
-              key={prospect.id}
-              data-state={selected.has(prospect.id) ? "selected" : undefined}
-              className={cn(!prospect.consented && "opacity-70")}
-            >
-              <TableCell>
-                <Checkbox
-                  checked={selected.has(prospect.id)}
-                  disabled={!prospect.consented}
-                  aria-label={`Select ${prospect.full_name}`}
-                  onCheckedChange={() => toggle(prospect.id)}
-                />
-              </TableCell>
-
-              <TableCell>
-                <div className="flex items-center gap-1.5">
-                  <span className="font-medium">{prospect.full_name}</span>
-                  {prospect.linkedin_url && (
-                    <a
-                      href={prospect.linkedin_url}
-                      target="_blank"
-                      rel="noreferrer noopener"
-                      aria-label={`Open ${prospect.full_name}'s profile`}
-                      className="text-muted-foreground hover:text-foreground"
-                    >
-                      <ExternalLink className="size-3" />
-                    </a>
-                  )}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="truncate text-sm font-medium">
+                        {prospect.full_name}
+                      </span>
+                      {prospect.linkedin_url && (
+                        <a
+                          href={prospect.linkedin_url}
+                          target="_blank"
+                          rel="noreferrer noopener"
+                          aria-label={`Open ${prospect.full_name}'s profile`}
+                          className="text-muted-foreground shrink-0"
+                        >
+                          <ExternalLink className="size-3" />
+                        </a>
+                      )}
+                    </div>
+                    <p className="text-muted-foreground mt-0.5 text-xs">
+                      {prospect.job_title ?? "—"}
+                      {prospect.company_name && ` · ${prospect.company_name}`}
+                      {prospect.years_experience != null &&
+                        ` · ${prospect.years_experience}y`}
+                    </p>
+                  </div>
+                  <span className="shrink-0 text-sm font-semibold tabular-nums">
+                    {prospect.fit_score ?? "—"}
+                  </span>
                 </div>
-                {prospect.headline && (
-                  <p className="text-muted-foreground mt-0.5 max-w-72 truncate text-xs">
-                    {prospect.headline}
+
+                {(prospect.skills?.length ?? 0) > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {(prospect.skills ?? []).slice(0, 4).map((skill) => (
+                      <Badge
+                        key={skill}
+                        variant="secondary"
+                        className="px-1.5 py-0 text-[10px] font-normal"
+                      >
+                        {skill}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+
+                <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+                  <CallableCell prospect={prospect} />
+                  <ConsentLink
+                    prospect={prospect}
+                    onUpdated={onProspectUpdated}
+                  />
+                </div>
+
+                {/* Shown outright rather than in a tooltip: there is no
+                    hover on a touch screen. */}
+                {!prospect.consented && prospect.not_callable_reason && (
+                  <p className="text-muted-foreground mt-1.5 text-[11px] leading-relaxed">
+                    {prospect.not_callable_reason}
                   </p>
                 )}
-              </TableCell>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
 
-              <TableCell className="text-sm">
-                <div>{prospect.job_title ?? "—"}</div>
-                <div className="text-muted-foreground text-xs">
-                  {prospect.company_name ?? "—"}
-                  {prospect.years_experience != null &&
-                    ` · ${prospect.years_experience}y`}
-                </div>
-              </TableCell>
-
-              <TableCell className="text-sm">
-                {prospect.location_city ?? "—"}
-              </TableCell>
-
-              <TableCell>
-                <div className="flex flex-wrap gap-1">
-                  {(prospect.skills ?? []).slice(0, 3).map((skill) => (
-                    <Badge
-                      key={skill}
-                      variant="secondary"
-                      className="px-1.5 py-0 text-[10px] font-normal"
-                    >
-                      {skill}
-                    </Badge>
-                  ))}
-                  {(prospect.skills?.length ?? 0) > 3 && (
-                    <span className="text-muted-foreground text-[10px]">
-                      +{(prospect.skills?.length ?? 0) - 3}
-                    </span>
-                  )}
-                </div>
-              </TableCell>
-
-              <TableCell>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="text-muted-foreground inline-flex items-center gap-1 text-xs">
-                      <PhoneOff className="size-3" />
-                      {prospect.phone_status === "PRESENT_MASKED"
-                        ? "On file"
-                        : prospect.phone_status === "REVEALED"
-                          ? "Available"
-                          : "None"}
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    {PHONE_LABEL[prospect.phone_status] ?? "Unknown"}
-                  </TooltipContent>
-                </Tooltip>
-              </TableCell>
-
-              <TableCell>
-                <CallableCell prospect={prospect} />
-                <ConsentLink
-                  prospect={prospect}
-                  onUpdated={onProspectUpdated}
+      <div className="hidden overflow-x-auto sm:block">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-10">
+                <Checkbox
+                  checked={allSelected}
+                  disabled={selectable.length === 0}
+                  aria-label="Select everyone who can be called"
+                  onCheckedChange={(checked) =>
+                    onSelectedChange(
+                      checked
+                        ? new Set(selectable.map((p) => p.id))
+                        : new Set(),
+                    )
+                  }
                 />
-              </TableCell>
+              </TableHead>
+              <TableHead>Person</TableHead>
+              <TableHead>Now</TableHead>
+              <TableHead>Location</TableHead>
+              <TableHead className="w-40 min-w-36">Skills</TableHead>
+              <TableHead className="w-32">Phone</TableHead>
+              <TableHead className="w-36">Reachable</TableHead>
+              <TableHead className="bg-background sticky right-0 w-36 text-right shadow-[-8px_0_8px_-8px_rgba(0,0,0,0.12)]">
+                Fit
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {prospects.map((prospect) => (
+              <TableRow
+                key={prospect.id}
+                data-state={selected.has(prospect.id) ? "selected" : undefined}
+                className={cn(!prospect.consented && "opacity-70")}
+              >
+                <TableCell>
+                  <Checkbox
+                    checked={selected.has(prospect.id)}
+                    disabled={!prospect.consented}
+                    aria-label={`Select ${prospect.full_name}`}
+                    onCheckedChange={() => toggle(prospect.id)}
+                  />
+                </TableCell>
 
-              {/* Pinned: a wide skills column otherwise pushes the score,
+                <TableCell>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-medium">{prospect.full_name}</span>
+                    {prospect.linkedin_url && (
+                      <a
+                        href={prospect.linkedin_url}
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        aria-label={`Open ${prospect.full_name}'s profile`}
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        <ExternalLink className="size-3" />
+                      </a>
+                    )}
+                  </div>
+                  {prospect.headline && (
+                    <p className="text-muted-foreground mt-0.5 max-w-72 truncate text-xs">
+                      {prospect.headline}
+                    </p>
+                  )}
+                </TableCell>
+
+                <TableCell className="text-sm">
+                  <div>{prospect.job_title ?? "—"}</div>
+                  <div className="text-muted-foreground text-xs">
+                    {prospect.company_name ?? "—"}
+                    {prospect.years_experience != null &&
+                      ` · ${prospect.years_experience}y`}
+                  </div>
+                </TableCell>
+
+                <TableCell className="text-sm">
+                  {prospect.location_city ?? "—"}
+                </TableCell>
+
+                <TableCell>
+                  <div className="flex flex-wrap gap-1">
+                    {(prospect.skills ?? []).slice(0, 3).map((skill) => (
+                      <Badge
+                        key={skill}
+                        variant="secondary"
+                        className="px-1.5 py-0 text-[10px] font-normal"
+                      >
+                        {skill}
+                      </Badge>
+                    ))}
+                    {(prospect.skills?.length ?? 0) > 3 && (
+                      <span className="text-muted-foreground text-[10px]">
+                        +{(prospect.skills?.length ?? 0) - 3}
+                      </span>
+                    )}
+                  </div>
+                </TableCell>
+
+                <TableCell>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="text-muted-foreground inline-flex items-center gap-1 text-xs">
+                        <PhoneOff className="size-3" />
+                        {prospect.phone_status === "PRESENT_MASKED"
+                          ? "On file"
+                          : prospect.phone_status === "REVEALED"
+                            ? "Available"
+                            : "None"}
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      {PHONE_LABEL[prospect.phone_status] ?? "Unknown"}
+                    </TooltipContent>
+                  </Tooltip>
+                </TableCell>
+
+                <TableCell>
+                  <CallableCell prospect={prospect} />
+                  <ConsentLink
+                    prospect={prospect}
+                    onUpdated={onProspectUpdated}
+                  />
+                </TableCell>
+
+                {/* Pinned: a wide skills column otherwise pushes the score,
                   which is the thing people actually scan, past the right
                   edge of the viewport. */}
-              <TableCell className="bg-background sticky right-0 text-right shadow-[-8px_0_8px_-8px_rgba(0,0,0,0.12)]">
-                <FitCell prospect={prospect} />
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+                <TableCell className="bg-background sticky right-0 text-right shadow-[-8px_0_8px_-8px_rgba(0,0,0,0.12)]">
+                  <FitCell prospect={prospect} />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </>
   );
 }

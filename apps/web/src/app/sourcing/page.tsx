@@ -420,7 +420,10 @@ export default function SourcingPage() {
               </h2>
               <p className="text-muted-foreground mt-0.5 text-sm">
                 Ranked by fit for outreach priority, never as a judgement about
-                anyone. Hover a score to see how it was reached.
+                anyone.{" "}
+                <span className="hidden sm:inline">
+                  Hover a score to see how it was reached.
+                </span>
               </p>
             </div>
 

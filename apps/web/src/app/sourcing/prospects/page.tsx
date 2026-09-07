@@ -211,7 +211,12 @@ export default function ProspectsPage() {
                   {activeSearch.credits_charged === 1 ? "credit" : "credits"}.
                 </>
               ) : (
-                <>Ranked by fit. Hover a score to see how it was reached.</>
+                <>
+                  Ranked by fit.{" "}
+                  <span className="hidden sm:inline">
+                    Hover a score to see how it was reached.
+                  </span>
+                </>
               )}
             </p>
           </div>
