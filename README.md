@@ -76,10 +76,12 @@ research that overturned the obvious approach.
 
 | Provider | Person search | Phone number | Status |
 |---|---|---|---|
-| People Data Labs | Yes, ~100 credits/month | **No** — contact fields return `true`/`false` since v29.0 | Implemented |
-| Apollo.io | — | — | Free plan excludes API access entirely |
+| People Data Labs | Yes — 100 credits/month, no card | **No** — contact fields return `true`/`false` on free tiers since v29.0 | Implemented |
+| Apollo.io | Plan-gated | Costs credits where available | API access [depends on plan](https://docs.apollo.io/docs/create-api-key); their docs say upgrade |
 | Proxycurl | — | — | **Shut down July 2025** after the LinkedIn suit |
-| Coresignal | Yes, 7-day trial | **No** — holds no personal phones by design | Not pursued |
+| Coresignal | Yes, trial | **No** — public-web sourcing yields no personal phones | Not pursued |
+
+*Checked 7 September 2026. Free tiers move; the shape of the conclusion has not.*
 
 So the chain the brief describes — search, then phone, then call — cannot be
 closed on free credits by anyone. Rather than fake it, the product splits the
